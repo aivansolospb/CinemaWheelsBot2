@@ -6,6 +6,8 @@ if (SENTRY_DSN) {
   // @ts-ignore
   Sentry.init({
     dsn: SENTRY_DSN,
+    // (НОВОЕ) Добавлена опция sendDefaultPii
+    sendDefaultPii: true, // Отправка PII (например, IP)
     integrations: [
       // @ts-ignore // Включает Sentry.captureConsole для захвата console.error
       new Sentry.Integrations.CaptureConsole({
@@ -194,7 +196,7 @@ const App = {
      */
     init() {
         // (ТЕСТ Sentry) Генерируем ошибку
-        // myUndefinedFunction(); // <-- ДОБАВЛЕНО ДЛЯ ТЕСТА SENTRY
+        // myUndefinedFunction(); // <-- ЗАКОММЕНТИРОВАНО ПОСЛЕ ТЕСТА
 
         console.log('App init...');
         try { // (НОВОЕ) Оборачиваем init в try...catch для Sentry
@@ -1232,5 +1234,4 @@ document.addEventListener('DOMContentLoaded', () => {
          }
     }
 });
-"
 
