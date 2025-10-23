@@ -66,7 +66,7 @@
     }
      button, .auth-button, .menu-item, .report-item-btn {
         background-color: var(--tg-theme-button-color, var(--tg-dark-theme-button-color));
-        color: var(--tg-theme-button-text-color, var(--tg-dark-theme-button-text-color));
+        color: var(--tg-theme-button-text-color, var(--tg-dark-theme-text-color));
     }
      .report-item, .profile-menu {
         border-top: 1px solid var(--dark-border-color, #38383a);
@@ -247,13 +247,13 @@ textarea {
     resize: vertical; /* Разрешаем менять высоту */
 }
 
-/* (5.3) Стили для времени */
+/* (5.3) Стили для времени [ИСПРАВЛЕНО] */
 .time-group {
     display: flex;
-    flex-direction: row;
-	gap: 15px;
+    flex-direction: row; /* Заставляем быть в строку */
+    gap: 15px;
 }
-.time-input-container {
+.time-input-container { /* Переименовано с .time-input */
     flex: 1; /* Растягиваем поля времени */
 }
 
@@ -434,4 +434,3 @@ textarea {
         font-size: 1.6em;
     }
 }
-
