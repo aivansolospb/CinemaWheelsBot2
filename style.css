@@ -250,7 +250,8 @@ textarea {
 /* (5.3) Стили для времени */
 .time-group {
     display: flex;
-    gap: 15px;
+    flex-direction: row;
+	gap: 15px;
 }
 .time-input-container {
     flex: 1; /* Растягиваем поля времени */
