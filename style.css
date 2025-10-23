@@ -1,122 +1,345 @@
-/* style.css — НЕ ИЗМЕНЕН, но я добавил инлайн-стиль для лоадера в HTML, 
-   чтобы он был виден сразу при загрузке. */
+/* (2.0) Базовые стили */
+:root {
+    --bg-color: #18222d; /* (TWA) themeParams.bg_color */
+    --text-color: #ffffff; /* (TWA) themeParams.text_color */
+    --hint-color: #b1c3d5; /* (TWA) themeParams.hint_color */
+    --link-color: #62a9e3; /* (TWA) themeParams.link_color */
+    --button-color: #409ae3; /* (TWA) themeParams.button_color */
+    --button-text-color: #ffffff; /* (TWA) themeParams.button_text_color */
+    --secondary-bg-color: #232e3c; /* (TWA) themeParams.secondary_bg_color */
+    --destructive-color: #e53935;
+}
 
+/* (2.0) Применяем переменные TWA (если доступны) */
 body {
-  margin: 0;
-  font-family: system-ui, sans-serif;
-  background: #f4f4f4;
-  color: #222;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior-y: none; /* (2.0) Убираем "оттягивание" */
 }
 
-/* Этот стиль из HTML переопределит 'display: none' 
-  из этого файла во время первоначальной загрузки.
-  #loader { ... display: none; ... }
-*/
-#loader {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.9);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5em;
-  z-index: 9999;
+/* (2.0) Базовые элементы */
+* {
+    box-sizing: border-box;
 }
 
+a {
+    color: var(--link-color);
+}
+
+/* (2.0) (5.0) Стили экрана */
 .screen {
-  display: none;
-  padding: 20px;
-}
-
-.screen:not(.hidden) {
-  display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 16px;
+    overflow-y: auto;
+    background-color: var(--bg-color);
+    transition: opacity 0.2s ease-in-out;
 }
 
 .hidden {
-  display: none !important;
+    display: none;
+    opacity: 0;
 }
 
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  max-width: 500px;
-  margin: 0 auto;
-  background: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+/* (5.0) Загрузчик */
+#loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.spinner {
+    border: 4px solid var(--secondary-bg-color);
+    border-top: 4px solid var(--button-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
-label {
-  font-weight: 500;
-  margin-bottom: -5px;
+/* (5.0) (5.3) Хедер экрана */
+.screen-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--secondary-bg-color);
+}
+.screen-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-color);
+}
+.profile-button {
+    background: none;
+    border: none;
+    color: var(--hint-color);
+    padding: 0;
+    cursor: pointer;
+}
+.profile-button svg {
+    width: 28px;
+    height: 28px;
+}
+.close-button {
+    background: var(--secondary-bg-color);
+    border: none;
+    color: var(--hint-color);
+    width: 32px;
+    height: 32px;
+    font-size: 24px;
+    line-height: 32px;
+    text-align: center;
+    border-radius: 50%;
+    cursor: pointer;
 }
 
-input, button, select, textarea {
-  font-size: 1em;
-  padding: 12px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  box-sizing: border-box; /* Важно для padding */
+
+/* (5.3) Стили формы */
+.form-container {
+    padding-bottom: 80px; /* (5.0) Место для MainButton */
+}
+.input-group {
+    margin-bottom: 16px;
+}
+.input-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: var(--text-color);
+}
+.input-group input[type="text"],
+.input-group input[type="date"],
+.input-group input[type="time"],
+.input-group input[type="number"],
+.input-group select,
+.input-group textarea {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--secondary-bg-color);
+    border: 1px solid var(--secondary-bg-color); /* (2.0) Убираем дефолтный */
+    border-radius: 8px;
+    color: var(--text-color);
+    font-size: 16px;
+    -webkit-appearance: none; /* (2.0) Убираем дефолтный вид iOS */
+    -moz-appearance: none;
+    appearance: none;
+}
+.input-group textarea {
+    resize: vertical;
+    min-height: 60px;
+}
+/* (2.0) Устанавливаем плейсхолдер */
+.input-group ::placeholder {
+    color: var(--hint-color);
+    opacity: 0.7;
+}
+.time-inputs {
+    display: flex;
+    gap: 8px;
 }
 
-textarea {
-  min-height: 80px;
-  resize: vertical;
+/* (5.3) Логика прицепа */
+.trailer-logic {
+    margin-top: -8px;
+    margin-bottom: 16px;
+}
+.toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    color: var(--hint-color);
+    background-color: var(--secondary-bg-color);
+    padding: 12px;
+    border-radius: 8px;
+}
+.toggle-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--button-color);
+}
+.trailer-logic .time-inputs {
+    margin-top: 8px;
 }
 
-button {
-  background: #007bff;
-  color: #fff;
-  cursor: pointer;
-  border: none;
-  font-weight: 600;
-  padding: 14px;
+/* (5.1) Экран аутентификации */
+.auth-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding-top: 15vh;
+}
+.auth-icon {
+    width: 64px;
+    height: 64px;
+    color: var(--button-color);
+    margin-bottom: 16px;
+}
+.auth-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: 0;
+}
+.auth-subtitle {
+    font-size: 16px;
+    color: var(--hint-color);
+    margin-top: 8px;
+    margin-bottom: 24px;
+    max-width: 300px;
+}
+#auth-form {
+    width: 100%;
+    max-width: 320px;
+}
+#auth-form .input-group {
+    text-align: left;
+}
+.auth-error {
+    background-color: rgba(229, 57, 53, 0.1);
+    color: var(--destructive-color);
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+.auth-button {
+    width: 100%;
+    padding: 14px;
+    background-color: var(--button-color);
+    color: var(--button-text-color);
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.auth-button:disabled {
+    opacity: 0.7;
 }
 
-button:hover {
-  background: #0056b3;
+/* (5.2) Экран профиля */
+#profile-screen {
+    padding: 0;
+}
+.profile-header {
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: var(--secondary-bg-color);
+    position: relative;
+}
+.profile-header #profile-close-button {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: rgba(0,0,0,0.2);
+}
+.profile-header svg {
+    width: 72px;
+    height: 72px;
+    color: var(--button-color);
+    margin-bottom: 16px;
+}
+#profile-name {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0;
+}
+#profile-id {
+    font-size: 14px;
+    color: var(--hint-color);
+    margin: 4px 0 0 0;
+}
+.profile-menu {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background-color: var(--secondary-bg-color);
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    color: var(--text-color);
+    text-align: left;
+    cursor: pointer;
+}
+.menu-item svg {
+    width: 24px;
+    height: 24px;
+    color: var(--hint-color);
 }
 
-header {
-  display: flex;
-  justify-content: flex-end;
-  background: #fff;
-  padding: 15px 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin: -20px -20px 20px -20px;
+/* (5.4) Экран списка отчетов */
+#edit-list-screen {
+    padding: 0;
+}
+#edit-list-screen .screen-header {
+    padding: 16px;
+}
+.report-list-container {
+    padding: 0 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.report-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--secondary-bg-color);
+    padding: 12px 16px;
+    border-radius: 8px;
+}
+.report-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.report-item-date {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-color);
+}
+.report-item-project {
+    font-size: 15px;
+    color: var(--text-color);
+}
+.report-item-vehicle {
+    font-size: 13px;
+    color: var(--hint-color);
+}
+.report-item-btn {
+    background: none;
+    border: none;
+    color: var(--link-color);
+    padding: 8px;
+}
+.report-item-btn svg {
+    width: 20px;
+    height: 20px;
 }
 
-#profile-button {
-  cursor: pointer;
-  color: #007bff;
-  font-weight: 600;
-  font-size: 1.1em;
-}
-
-#report-list {
-  list-style: none;
-  padding: 0;
-}
-
-#report-list li {
-  padding: 12px;
-  border-bottom: 1px solid #eee;
-  background: #fff;
-  border-radius: 8px;
-  margin-bottom: 8px;
-}
-
-#profile-screen p {
-  font-size: 1.1em;
-  background: #fff;
-  padding: 15px;
-  border-radius: 8px;
-}
-#profile-screen button {
-  margin-top: 10px;
-}
