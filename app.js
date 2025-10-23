@@ -1,11 +1,11 @@
 // (2.0) Мок TWA для отладки в браузере
-if (typeof Telegram === 'undefined') {
+if (typeof Telegram === 'undefined' || !Telegram.WebApp.initDataUnsafe) {
     console.log("Telegram WebApp SDK не найден. Используется мок.");
     window.Telegram = {
         WebApp: {
             initDataUnsafe: {
                 user: { 
-                    id: 123456789, 
+                    id: 123456789, // <-- ТЕСТОВЫЙ ID 
                     first_name: "Иван", 
                     last_name: "Иванов", 
                     username: "ivan_test"
@@ -55,9 +55,9 @@ if (typeof Telegram === 'undefined') {
     };
 }
 
-// (2.0) API_BASE_URL (!!!) - Заменить при развертывании
+// (2.0) API_BASE_URL (!!!) - Заменен на ваш
 // @ts-ignore
-const API_BASE_URL = 'cinemawheels2-backend.aivansolo-spb.workers.dev'; // <--- Я вставил ваш URL из Части 4
+const API_BASE_URL = 'cinemawheels2-backend.aivansolo-spb.workers.dev';
 
 /**
  * (2.0) Главный объект приложения
@@ -241,15 +241,15 @@ const app = {
             
             if (response.error) {
                 if (response.error === 'not_found') {
-                    // (5.1) Пользователь есть в GSheets, но не в Users (TWA). Показываем регистрацию.
+                    // (5.1) (ИЗМЕНЕНО) Пользователя нет в D1. Показываем регистрацию.
                     this.showPage('register');
                     document.getElementById('driver_name').value = `${this.tgUser.first_name || ''} ${this.tgUser.last_name || ''}`.trim();
                 } else {
-                    // (5.1) 'not_authorized' - нет в GSheets
-                    this.showAuthError("Ваш ID не найден в списке допущенных пользователей. Обратитесь к менеджеру.");
+                    // (5.1) Какая-то другая ошибка от бэка
+                    this.showAuthError(response.error);
                 }
             } else {
-                // (5.1) Успешная аутентификация
+                // (5.1) Успешная аутентификация, пользователь найден в D1
                 this.state.user = response.data;
                 await this.loadInitialData();
                 this.showPage('form');
@@ -280,7 +280,7 @@ const app = {
             const response = await this.api.post('/register', {
                 tgId: this.tgUser.id.toString(),
                 driverName: name,
-                username: this.tgUser.username
+                username: this.tgUser.username || ""
             });
             
             if (response.error) {
@@ -819,7 +819,8 @@ class ApiClient {
         } catch (e) {
             // (2.0) Ошибки сети (CORS, DNS, Offline)
             console.error("API Request Error:", e);
-            return { error: e.message };
+            // TypeError: Failed to fetch
+            return { error: "Ошибка сети: Не удалось связаться с сервером." };
         }
     }
 
@@ -838,3 +839,4 @@ class ApiClient {
 document.addEventListener('DOMContentLoaded', () => {
     app.init();
 });
+
