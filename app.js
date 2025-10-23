@@ -259,7 +259,7 @@ const App = {
     },
 
     /**
-     * (5.0) Привязка обработчиков
+     * (5.0) [ИЗМЕНЕНО] Привязка обработчиков
      */
     bindEvents() {
         // (5.0) Главная кнопка TWA
@@ -279,6 +279,9 @@ const App = {
 
         // (5.3) Черновик
         this.elements.reportForm.addEventListener('input', (e) => this.handleFormInput(e));
+
+        // [НОВОЕ] Ограничение ввода для Перепробега
+        this.elements.overrunInput.addEventListener('input', (e) => this.handleOverrunInput(e));
 
         // (5.3) Логика "Время прицепа"
         this.elements.trailerSelect.addEventListener('change', () => this.updateTrailerTimeVisibility());
@@ -642,19 +645,54 @@ const App = {
     },
 
     /**
-     * (5.3) Сохранение черновика в localStorage
+     * (5.3) Сохранение черновика в localStorage (кроме overrun, он обрабатывается отдельно)
      */
     handleFormInput(e) {
-        // console.log('[LOG] handleFormInput triggered.'); // [ЛОГ] Слишком частое событие, закомментировано
         // @ts-ignore
         const { id, value, type, checked } = e.target;
+
+        // [ИЗМЕНЕНО] Исключаем overrun, он обрабатывается в handleOverrunInput
+        if (id === 'overrun') return; 
+
         if (id in this.state.currentReport) {
             // @ts-ignore
             this.state.currentReport[id] = type === 'checkbox' ? checked : value;
         } else {
-            // Не логгируем ошибку, так как input события могут приходить от других элементов
             // console.warn(`Element with ID "${id}" not found in state.currentReport`);
         }
+        localStorage.setItem('driver_report_draft', JSON.stringify(this.state.currentReport));
+    },
+
+    /**
+     * [НОВОЕ] Обработчик ввода для поля "Перепробег"
+     */
+    handleOverrunInput(e) {
+        // @ts-ignore
+        let value = e.target.value;
+        
+        // Удаляем нецифровые символы (кроме пустого значения)
+        if (value !== '') {
+            value = value.replace(/[^0-9]/g, '');
+        }
+
+        // Преобразуем в число для проверки
+        const numValue = parseInt(value, 10);
+
+        // Если значение не число или больше 9999, обрезаем
+        if (!isNaN(numValue) && numValue > 9999) {
+            value = '9999'; // Устанавливаем максимальное значение
+        } else if (isNaN(numValue) && value !== '') {
+             value = ''; // Если ввели не число, сбрасываем
+        } else if (value.length > 4) { // Дополнительная проверка на длину строки
+            value = value.slice(0, 4);
+        }
+
+        // Обновляем значение в поле ввода
+        // @ts-ignore
+        e.target.value = value;
+
+        // Обновляем состояние и localStorage
+        this.state.currentReport.overrun = value;
         localStorage.setItem('driver_report_draft', JSON.stringify(this.state.currentReport));
     },
 
@@ -790,7 +828,7 @@ const App = {
     },
 
     /**
-     * (5.3) Валидация формы
+     * (5.3) [ИЗМЕНЕНО] Валидация формы (убираем проверку overrun > 9999)
      */
     validateForm() {
         console.log('[LOG] validateForm() called.'); // [ЛОГ] Валидация формы
@@ -801,6 +839,17 @@ const App = {
         if (!data.address) { console.warn('[VALIDATION] Address missing.'); return "Укажите адрес."; }
         if (!data.shift_start || !data.shift_end) { console.warn('[VALIDATION] Shift time missing.'); return "Укажите время начала и конца смены."; }
         if (data.trailer_diff_time && (!data.trailer_start || !data.trailer_end)) { console.warn('[VALIDATION] Trailer time missing when diff enabled.'); return "Укажите время начала и конца прицепа."; }
+        
+        // [ИЗМЕНЕНО] Проверка > 9999 больше не нужна, т.к. ввод ограничен
+        if (data.overrun) {
+            const overrunValue = parseInt(data.overrun, 10);
+            // Проверяем только на NaN и отрицательные (на всякий случай)
+            if (isNaN(overrunValue) || overrunValue < 0) { 
+                 console.warn('[VALIDATION] Overrun invalid.'); 
+                 return "Перепробег должен быть положительным числом.";
+            }
+        }
+
         console.log('[LOG] Form validation passed.'); // [ЛОГ] Валидация пройдена
         return null;
     },
@@ -861,8 +910,6 @@ const App = {
         
         // 2. Вспомогательные функции
         const fHours = (h) => h > 0 ? `${h.toFixed(1)} ч.` : '0 ч.';
-        
-        // [ИЗМЕНЕНО] Убираем 'truncate', модальное окно скроллится
         
         // 3. Данные водителя
         const user = this.state.user;
