@@ -57,7 +57,7 @@ if (typeof Telegram === 'undefined') {
 
 // (2.0) API_BASE_URL (!!!) - Заменить при развертывании
 // @ts-ignore
-const API_BASE_URL = 'https://cinemawheels2-backend.alvarsolo-spb.workers.dev'; // <--- Я вставил ваш URL из Части 4
+const API_BASE_URL = 'cinemawheels2-backend.aivansolo-spb.workers.dev'; // <--- Я вставил ваш URL из Части 4
 
 /**
  * (2.0) Главный объект приложения
