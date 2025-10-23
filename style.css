@@ -1,0 +1,184 @@
+/* (2.0) Базовые стили TWA */
+:root {
+    /* Переменные Telegram для темной/светлой темы */
+    --bg-color: var(--tg-theme-bg-color, #ffffff);
+    --text-color: var(--tg-theme-text-color, #000000);
+    --hint-color: var(--tg-theme-hint-color, #777777);
+    --button-color: var(--tg-theme-button-color, #007aff);
+    --button-text-color: var(--tg-theme-button-text-color, #ffffff);
+    --secondary-bg-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
+    --header-bg-color: var(--tg-theme-header-bg-color, #ffffff);
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 1rem;
+    box-sizing: border-box;
+    overscroll-behavior: none; /* Убираем "оттягивание" страницы */
+}
+
+/* (2.0) Стили для инпутов, чтобы они соответствовали TWA */
+.form-input {
+    width: 100%;
+    background-color: var(--secondary-bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--hint-color);
+    border-radius: 0.5rem; /* 8px */
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+.form-input:focus {
+    outline: none;
+    border-color: var(--button-color);
+}
+.form-input::placeholder {
+    color: var(--hint-color);
+}
+
+/* (2.0) Кастомный селект с иконкой */
+.form-select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22%22%20%3E%3Cpath%20fill%3D%22%23777777%22%20fill-rule%3D%22evenodd%22%20d%3D%22M5.293%207.293a1%201%200%20011.414%200L10%2010.586l3.293-3.293a1%201%200%20111.414%201.414l-4%204a1%201%200%2001-1.414%200l-4-4a1%201%200%20010-1.414z%22%20clip-rule%3D%22evenodd%22%20/%3E%3C/svg%3E');
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1.25em 1.25em;
+    padding-right: 2.5rem;
+}
+
+/* (2.0) Стили для времени */
+.time-input {
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    position: relative;
+}
+
+/* (2.0) Нативные TWA-кнопки */
+.btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border-radius: 0.75rem; /* 12px */
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: center;
+    transition: opacity 0.2s;
+}
+.btn:disabled {
+    opacity: 0.5;
+}
+.btn-primary {
+    background-color: var(--button-color);
+    color: var(--button-text-color);
+}
+.btn-secondary {
+    background-color: var(--secondary-bg-color);
+    color: var(--text-color);
+}
+.btn-danger {
+    background-color: #ef4444;
+    color: #ffffff;
+}
+
+/* (2.0) Шапка (Хедер) */
+#header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: var(--header-bg-color);
+    padding: 0.75rem 1rem;
+    z-index: 10;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--secondary-bg-color);
+}
+#header-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+#header-icon {
+    width: 2.25rem; /* 36px */
+    height: 2.25rem;
+    border-radius: 99px;
+    background-color: var(--secondary-bg-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--hint-color);
+}
+/* (2.0) Контент должен начинаться под шапкой */
+main {
+    padding-top: 4rem; /* Высота шапки + отступ */
+}
+
+/* (2.0) Модальное окно */
+.modal {
+    position: fixed;
+    z-index: 50;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 1rem;
+}
+.modal-content {
+    background-color: var(--bg-color);
+    border-radius: 0.75rem; /* 12px */
+    padding: 1.5rem;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    animation: slide-up 0.3s ease-out;
+}
+@keyframes slide-up {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
+
+/* (2.0) Тост-уведомление */
+#toast {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    right: 1rem;
+    background-color: var(--secondary-bg-color);
+    color: var(--text-color);
+    padding: 1rem;
+    border-radius: 0.75rem;
+    text-align: center;
+    z-index: 100;
+    font-weight: 500;
+    transform: translateY(-200%);
+    transition: transform 0.3s ease-out;
+}
+#toast.show {
+    transform: translateY(0);
+}
+
+/* (2.0) Спиннер загрузки */
+.loader {
+    width: 48px;
+    height: 48px;
+    border: 5px solid var(--secondary-bg-color);
+    border-bottom-color: var(--button-color);
+    border-radius: 50%;
+    display: inline-block;
+    box-sizing: border-box;
+    animation: rotation 1s linear infinite;
+}
+@keyframes rotation {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
