@@ -117,7 +117,7 @@
             <div class="input-group">
                 <label>Смена (Начало / Конец)</label>
                 <div class="time-inputs">
-                    <!-- ИЗМЕНЕНО: id с _ -->
+                    <!-- ИЗМЕНЕНО: id/name с _ -->
                     <input type="time" id="shift_start" name="shift_start" required> 
                     <input type="time" id="shift_end" name="shift_end" required>
                 </div>
@@ -134,8 +134,8 @@
             
             <!-- (5.3) Логика времени прицепа -->
             <div id="trailer-time-logic" class="trailer-logic">
-                <label for="trailer-time-toggle" class="toggle-label hidden" id="trailer-time-toggle-label">
-                    <!-- ИЗМЕНЕНО: id/name с _ -->
+                 <!-- ИЗМЕНЕНО: for/id/name с _ -->
+                <label for="trailer_diff_time" class="toggle-label hidden" id="trailer-time-toggle-label">
                     <input type="checkbox" id="trailer_diff_time" name="trailer_diff_time">
                     <span>Время прицепа отличается от времени смены</span>
                 </label>

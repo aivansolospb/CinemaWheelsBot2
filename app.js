@@ -102,13 +102,13 @@ const App = {
         projectDatalist: null,
         vehicleSelect: null,
         addressInput: null,
-        shiftStartInput: null,
-        shiftEndInput: null,
+        shiftStartInput: null, // ИЗМЕНЕНО
+        shiftEndInput: null, // ИЗМЕНЕНО
         trailerSelect: null,
-        trailerTimeToggle: null,
+        trailerTimeToggle: null, // ИЗМЕНЕНО
         trailerTimeFields: null,
-        trailerStartInput: null,
-        trailerEndInput: null,
+        trailerStartInput: null, // ИЗМЕНЕНО
+        trailerEndInput: null, // ИЗМЕНЕНО
         overrunInput: null,
         commentInput: null,
         // (5.0) Профиль
@@ -182,13 +182,13 @@ const App = {
         this.elements.projectDatalist = document.getElementById('recent-projects');
         this.elements.vehicleSelect = document.getElementById('vehicle');
         this.elements.addressInput = document.getElementById('address');
-        this.elements.shiftStartInput = document.getElementById('shift-start');
-        this.elements.shiftEndInput = document.getElementById('shift-end');
+        this.elements.shiftStartInput = document.getElementById('shift_start'); // ИЗМЕНЕНО
+        this.elements.shiftEndInput = document.getElementById('shift_end'); // ИЗМЕНЕНО
         this.elements.trailerSelect = document.getElementById('trailer');
-        this.elements.trailerTimeToggle = document.getElementById('trailer-time-toggle');
+        this.elements.trailerTimeToggle = document.getElementById('trailer_diff_time'); // ИЗМЕНЕНО
         this.elements.trailerTimeFields = document.getElementById('trailer-time-fields');
-        this.elements.trailerStartInput = document.getElementById('trailer-start');
-        this.elements.trailerEndInput = document.getElementById('trailer-end');
+        this.elements.trailerStartInput = document.getElementById('trailer_start'); // ИЗМЕНЕНО
+        this.elements.trailerEndInput = document.getElementById('trailer_end'); // ИЗМЕНЕНО
         this.elements.overrunInput = document.getElementById('overrun');
         this.elements.commentInput = document.getElementById('comment');
         
@@ -249,7 +249,7 @@ const App = {
         
         // (5.3) Логика "Время прицепа"
         this.elements.trailerSelect.addEventListener('change', () => this.updateTrailerTimeVisibility());
-        this.elements.trailerTimeToggle.addEventListener('click', () => this.toggleTrailerTime());
+        this.elements.trailerTimeToggle.addEventListener('click', () => this.toggleTrailerTime()); // ИЗМЕНЕНО
         
         // (5.4) Редактирование отчетов
         this.elements.profileEditReportsButton.addEventListener('click', () => this.showEditList());
@@ -632,8 +632,11 @@ const App = {
     updateTrailerTimeVisibility() {
         // @ts-ignore
         const trailerSelected = this.elements.trailerSelect.value;
+        // @ts-ignore
+        const toggleLabel = this.elements.trailerTimeToggle.parentElement; // ИЗМЕНЕНО
+
         if (trailerSelected) {
-            this.elements.trailerTimeToggle.classList.remove('hidden');
+            toggleLabel.classList.remove('hidden'); // ИЗМЕНЕНО
             // @ts-ignore
             if (this.elements.trailerTimeToggle.checked) {
                 this.elements.trailerTimeFields.classList.remove('hidden');
@@ -642,7 +645,7 @@ const App = {
             }
         } else {
             // (5.3) Если прицеп не выбран, скрываем всё
-            this.elements.trailerTimeToggle.classList.add('hidden');
+            toggleLabel.classList.add('hidden'); // ИЗМЕНЕНО
             this.elements.trailerTimeFields.classList.add('hidden');
             // @ts-ignore
             this.elements.trailerTimeToggle.checked = false;
