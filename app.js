@@ -30,9 +30,14 @@ if (SENTRY_DSN) {
     // Установите 0 в production, если не нужен Replay
     replaysOnErrorSampleRate: 1.0, // Записывает сессию, если произошла ошибка
   });
+
+  // (ТЕСТ Sentry) Генерируем ошибку ПОСЛЕ инициализации
+  myUndefinedFunction(); // <-- ПЕРЕМЕЩЕНО СЮДА
+
 } else {
     console.warn("Sentry DSN not found. Error reporting disabled.");
 }
+
 
 // (2.0) Мок TWA для отладки в браузере
 if (typeof Telegram === 'undefined' || !Telegram.WebApp.initDataUnsafe) {
@@ -195,8 +200,8 @@ const App = {
      * (2.0) Инициализация
      */
     init() {
-        // (ТЕСТ Sentry) Генерируем ошибку
-        // myUndefinedFunction(); // <-- ЗАКОММЕНТИРОВАНО ПОСЛЕ ТЕСТА
+        // (ТЕСТ Sentry) Генерируем ошибку ПОСЛЕ init
+        myUndefinedFunction(); // <-- ЗАКОММЕНТИРОВАНО ПОСЛЕ ТЕСТА
 
         console.log('App init...');
         try { // (НОВОЕ) Оборачиваем init в try...catch для Sentry
