@@ -1,287 +1,62 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <!-- (1.0) Адаптивность для TWA -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no, user-scalable=no">
-    <title>Отчеты водителей</title>
-    
-    <!-- (2.0) Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- (2.0) Иконки (Heroicons) -->
-    <script type="module" src="https://cdn.jsdelivr.net/npm/heroicons@2.1.3/24/outline/index.js"></script>
-    <script type="module" src="https://cdn.jsdelivr.net/npm/heroicons@2.1.3/24/solid/index.js"></script>
-
-    <!-- (2.0) Подключение наших стилей -->
-    <link rel="stylesheet" href="style.css">
-
-    <!-- (2.0) Подключение нашего скрипта (defer - чтобы он загрузился после HTML) -->
-    <script src="app.js" defer></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CinemaWheels TWA</title>
+  <link rel="stylesheet" href="style.css" />
+  <script defer src="app.js"></script>
 </head>
-<body class="antialiased">
+<body>
+  <div id="loader">Загрузка...</div>
 
-    <!-- (3.0) Хедер (Шапка) -->
-    <header id="header">
-        <div id="header-back" class="hidden cursor-pointer">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-            </svg>
-        </div>
-        <div id="header-title">Отчет о смене</div>
-        <div id="header-icon" onclick="app.showPage('profile')">
-             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-            </svg>
-        </div>
+  <!-- Экран авторизации -->
+  <section id="auth-screen" class="screen hidden">
+    <form id="auth-form">
+      <label for="auth-name">Имя:</label>
+      <input type="text" id="auth-name" required />
+      <button type="submit" id="auth-submit">Войти</button>
+    </form>
+  </section>
+
+  <!-- Основной экран -->
+  <section id="main-screen" class="screen hidden">
+    <header>
+      <div id="profile-button">Профиль</div>
     </header>
+    <form id="report-form">
+      <input type="text" id="project" list="recent-projects" placeholder="Проект" />
+      <datalist id="recent-projects"></datalist>
 
-    <!-- (2.0) Тост-уведомление -->
-    <div id="toast"></div>
+      <label>Начало смены:</label>
+      <input type="time" id="shift-start" required />
 
-    <!-- (2.0) Основной контент (Страницы) -->
-    <main>
-        
-        <!-- ============================================= -->
-        <!-- (2.0) ЗАГРУЗКА -->
-        <!-- ============================================= -->
-        <div id="page-loading" class="fixed inset-0 flex flex-col items-center justify-center z-50" style="background-color: var(--bg-color);">
-            <div class="loader"></div>
-            <div id="loading-text" class="mt-4 text-lg">Загрузка...</div>
-        </div>
-        
-        <!-- ============================================= -->
-        <!-- (5.1) РЕГИСТРАЦИЯ (Ввод ФИО) -->
-        <!-- ============================================= -->
-        <div id="page-register" class="hidden space-y-6">
-            <h2 class="text-xl font-bold">Добро пожаловать!</h2>
-            <p class="text-lg">Похоже, вы здесь впервые. Пожалуйста, введите ваше ФИО для регистрации в системе отчетов.</p>
-            <form id="register-form" class="space-y-4">
-                <div>
-                    <label for="driver_name" class="block text-sm font-medium mb-1">Ваше ФИО</label>
-                    <input type="text" id="driver_name" class="form-input" required>
-                </div>
-                <button id="register-button" type="submit" class="btn btn-primary">
-                    <span id="register-button-text">Сохранить и войти</span>
-                    <span id="register-button-spinner" class="hidden loader !w-6 !h-6 !border-2"></span>
-                </button>
-            </form>
-        </div>
+      <label>Конец смены:</label>
+      <input type="time" id="shift-end" required />
 
-        <!-- ============================================= -->
-        <!-- (5.3) ФОРМА ОТЧЕТА -->
-        <!-- ============================================= -->
-        <form id="page-form" class="hidden space-y-5">
-            <input type="hidden" id="report_id">
-            
-            <!-- (5.3) Дата -->
-            <div>
-                <label for="date" class="block text-sm font-medium mb-1">Дата</label>
-                <div class="relative">
-                    <input type="date" id="date" class="form-input">
-                </div>
-            </div>
+      <label>Начало прицепа:</label>
+      <input type="time" id="trailer-start" />
 
-            <!-- (5.3) Проект -->
-            <div>
-                <label for="project" class="block text-sm font-medium mb-1">Проект</label>
-                <input type="text" id="project" class="form-input" placeholder="Название проекта" list="project-list" required>
-                <!-- (5.3) Подсказки по 10 последним проектам -->
-                <datalist id="project-list"></datalist>
-            </div>
+      <label>Конец прицепа:</label>
+      <input type="time" id="trailer-end" />
 
-            <!-- (5.3) Техника -->
-            <div>
-                <label for="vehicle" class="block text-sm font-medium mb-1">Техника</label>
-                <select id="vehicle" class="form-input form-select" required>
-                    <option value="">— выберите технику —</option>
-                    <!-- Динамически заполняется -->
-                </select>
-            </div>
+      <button type="submit">Отправить</button>
+    </form>
+  </section>
 
-            <!-- (5.3) Место / Адрес -->
-            <div>
-                <label for="address" class="block text-sm font-medium mb-1">Место / Адрес</label>
-                <textarea id="address" class="form-input" rows="2" placeholder="Где вы работали" required></textarea>
-            </div>
-            
-            <!-- (5.3) Смена (Начало / Конец) -->
-            <div>
-                <label class="block text-sm font-medium mb-1">Смена (Начало / Конец)</label>
-                <div class="grid grid-cols-2 gap-4">
-                    <input type="time" id="shift_start" class="form-input time-input" required>
-                    <input type="time" id="shift_end" class="form-input time-input" required>
-                </div>
-            </div>
+  <!-- Профиль -->
+  <section id="profile-screen" class="screen hidden">
+    <p>ID пользователя: <span id="profile-id"></span></p>
+    <button id="profile-edit-name">Изменить имя</button>
+    <button id="profile-edit-reports">Мои отчёты</button>
+    <button id="profile-close">Закрыть</button>
+  </section>
 
-            <!-- (5.3) Прицеп -->
-            <div>
-                <div class="flex justify-between items-center">
-                    <label for="trailer" class="block text-sm font-medium">Прицеп</label>
-                    <button type="button" id="clear-trailer" class="text-sm hidden" style="color: var(--button-color);">Убрать</button>
-                </div>
-                <select id="trailer" class="form-input form-select mt-1">
-                    <option value="">— выберите прицеп —</option>
-                    <!-- Динамически заполняется -->
-                </select>
-            </div>
-            
-            <!-- (5.3) Время прицепа (Скрыто) -->
-            <div id="trailer-time-toggle" class="hidden">
-                <button type="button" class="btn btn-secondary !py-2.5 !text-sm" onclick="app.toggleTrailerTime()">
-                    Время прицепа отличается от времени смены
-                </button>
-            </div>
-            <div id="trailer-time-fields" class="hidden space-y-5">
-                <div>
-                    <label class="block text-sm font-medium mb-1">Время прицепа (Начало / Конец)</label>
-                    <div class="grid grid-cols-2 gap-4">
-                        <input type="time" id="trailer_start" class="form-input time-input">
-                        <input type="time" id="trailer_end" class="form-input time-input">
-                    </div>
-                </div>
-            </div>
-            
-            <!-- (5.3) Перепробег -->
-            <div>
-                <div class="flex justify-between items-center">
-                    <label for="overrun" class="block text-sm font-medium">Перепробег (км)</label>
-                    <button type="button" id="clear-overrun" class="text-sm hidden" style="color: var(--button-color);">Убрать</button>
-                </div>
-                <input type="number" id="overrun" class="form-input mt-1" placeholder="0">
-            </div>
-
-            <!-- (5.3) Комментарий -->
-            <div>
-                <div class="flex justify-between items-center">
-                    <label for="comment" class="block text-sm font-medium">Комментарий</label>
-                    <button type="button" id="clear-comment" class="text-sm hidden" style="color: var(--button-color);">Убрать</button>
-                </div>
-                <textarea id="comment" class="form-input mt-1" rows="3" placeholder="Любые детали, проблемы, заметки..."></textarea>
-            </div>
-            
-            <!-- (5.3) Кнопка Предпросмотра -->
-            <button id="form-submit-button" type="submit" class="btn btn-primary !mt-8">
-                Предпросмотр
-            </button>
-        </form>
-        
-        <!-- ============================================= -->
-        <!-- (5.2) (5.4) ПРОФИЛЬ -->
-        <!-- ============================================= -->
-        <div id="page-profile" class="hidden space-y-4">
-            <h2 class="text-xl font-bold">Профиль</h2>
-            
-            <div class="p-4 rounded-lg" style="background-color: var(--secondary-bg-color);">
-                <div class="text-sm" style="color: var(--hint-color);">Ваше ФИО</div>
-                <div id="profile-name" class="text-lg font-semibold"></div>
-            </div>
-            
-             <div class="p-4 rounded-lg" style="background-color: var(--secondary-bg-color);">
-                <div class="text-sm" style="color: var(--hint-color);">Ваш Telegram ID</div>
-                <div id="profile-tg-id" class="text-lg font-semibold"></div>
-            </div>
-
-            <!-- (5.2) Смена ФИО -->
-            <button class="btn btn-secondary" onclick="app.showPage('change-name')">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                </svg>
-                Изменить имя
-            </button>
-
-            <!-- (5.4) Редактирование отчетов -->
-            <button class="btn btn-secondary" onclick="app.showPage('edit-list')">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12M8.25 17.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                </svg>
-                Редактировать прошлые отчеты
-            </button>
-        </div>
-        
-        <!-- ============================================= -->
-        <!-- (5.2) СМЕНА ИМЕНИ -->
-        <!-- ============================================= -->
-        <div id="page-change-name" class="hidden space-y-6">
-            <h2 class="text-xl font-bold">Смена ФИО</h2>
-            <form id="change-name-form" class="space-y-4">
-                <div>
-                    <label for="new_driver_name" class="block text-sm font-medium mb-1">Новое ФИО</label>
-                    <input type="text" id="new_driver_name" class="form-input" required>
-                </div>
-                <button id="change-name-button" type="submit" class="btn btn-primary">
-                    <span id="change-name-button-text">Сохранить</span>
-                    <span id="change-name-button-spinner" class="hidden loader !w-6 !h-6 !border-2"></span>
-                </button>
-            </form>
-        </div>
-
-        <!-- ============================================= -->
-        <!-- (5.4) СПИСОК ОТЧЕТОВ ДЛЯ РЕДАКТИРОВАНИЯ -->
-        <!-- ============================================= -->
-        <div id="page-edit-list" class="hidden space-y-4">
-            <h2 class="text-xl font-bold">Выберите отчет</h2>
-            <div id="edit-list-container" class="space-y-3">
-                <!-- (5.4) Динамически заполняется -->
-                <div id="edit-list-loader" class="flex justify-center py-8">
-                    <div class="loader"></div>
-                </div>
-                <div id="edit-list-empty" class="hidden text-center py-8" style="color: var(--hint-color);">
-                    Отчетов не найдено.
-                </div>
-            </div>
-        </div>
-
-    </main>
-    
-    <!-- ============================================= -->
-    <!-- (5.3) (5.4) МОДАЛЬНЫЕ ОКНА -->
-    <!-- ============================================= -->
-
-    <!-- (5.3) (5.4) Модальное окно Предпросмотра/Редактирования -->
-    <div id="modal-preview" class="modal hidden">
-        <div class="modal-content space-y-6">
-            <h2 id="preview-title" class="text-xl font-bold">Предпросмотр отчета</h2>
-            
-            <!-- (5.3) (5.4) Детали отчета -->
-            <div id="preview-details" class="space-y-3 text-sm">
-                <!-- Динамически заполняется -->
-            </div>
-            
-            <!-- (5.4) Поле "Причина редактирования" -->
-            <div id="preview-reason-container" class="hidden space-y-2">
-                <hr>
-                <label for="edit_reason" class="block text-sm font-medium">Причина редактирования</label>
-                <input type="text" id="edit_reason" class="form-input" placeholder="Что было исправлено?" required>
-            </div>
-
-            <!-- Кнопки модального окна -->
-            <div class="grid grid-cols-2 gap-4">
-                <button class="btn btn-secondary" onclick="app.closeModal()">Отмена</button>
-                <button id="modal-confirm-button" class="btn btn-primary">
-                    <span id="modal-confirm-button-text">Отправить</span>
-                    <span id="modal-confirm-button-spinner" class="hidden loader !w-6 !h-6 !border-2"></span>
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- (5.1) Модальное окно Ошибки Авторизации -->
-    <div id="modal-auth-error" class="modal hidden">
-        <div class="modal-content space-y-6 text-center">
-            <h2 class="text-xl font-bold text-red-600">Доступ запрещен</h2>
-            <p id="auth-error-message" class="text-lg">
-                Ваш Telegram ID не найден в списке допущенных пользователей. 
-                Пожалуйста, обратитесь к вашему менеджеру.
-            </p>
-            <div id="auth-error-tgid" class="text-sm" style="color: var(--hint-color);"></div>
-        </div>
-    </div>
-
-
-    <!-- (2.0) Подключение Telegram Web App SDK -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
+  <!-- Экран редактирования отчётов -->
+  <section id="edit-list-screen" class="screen hidden">
+    <h2>Мои отчёты</h2>
+    <ul id="report-list"></ul>
+    <button id="edit-list-close-button">Закрыть</button>
+  </section>
 </body>
 </html>
-
