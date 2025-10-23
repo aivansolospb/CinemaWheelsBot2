@@ -159,8 +159,9 @@ const App = {
      * (2.0) Инициализация
      */
     init() {
-        console.log('App init...');
-        try { // Оборачиваем init в try...catch для безопасности
+        console.log('[LOG] App.init() started.'); // [ЛОГ] Начало инициализации
+        try {
+            console.log('[LOG] Binding DOM elements...'); // [ЛОГ] Привязка элементов
             // (2.0) Привязка элементов DOM
             this.elements.loader = document.getElementById('loader');
             this.elements.mainScreen = document.getElementById('main-screen');
@@ -206,31 +207,43 @@ const App = {
             // (5.4) Редактирование
             this.elements.editListContainer = document.getElementById('edit-list-container');
             this.elements.editListCloseButton = document.getElementById('edit-list-close-button');
+            console.log('[LOG] DOM elements bound successfully.'); // [ЛОГ] Элементы привязаны
 
             // (2.0) Инициализация API
+            console.log('[LOG] Initializing API client...'); // [ЛОГ] Инициализация API
             // @ts-ignore
             this.api = new ApiClient(API_BASE_URL);
+            console.log('[LOG] API client initialized.'); // [ЛОГ] API инициализирован
 
             // (2.0) TWA Ready
+            console.log('[LOG] Calling Telegram.WebApp.ready()...'); // [ЛОГ] TWA ready
             this.tg.ready();
+            console.log('[LOG] Calling Telegram.WebApp.expand()...'); // [ЛОГ] TWA expand
             this.tg.expand();
 
             // (5.0) Обработчики событий
+            console.log('[LOG] Binding event listeners...'); // [ЛОГ] Привязка событий
             this.bindEvents();
+            console.log('[LOG] Event listeners bound.'); // [ЛОГ] События привязаны
 
             // (5.1) Запуск аутентификации
+            console.log('[LOG] Getting Telegram user data...'); // [ЛОГ] Получение данных TG
             const tgUser = this.tg.initDataUnsafe.user;
             if (!tgUser) {
-                console.error("Telegram user data not found.");
+                console.error("[ERROR] Telegram user data not found.");
                 this.showAuthError("Не удалось получить данные Telegram. Попробуйте перезапустить приложение.");
                 return;
             }
+            console.log('[LOG] Telegram user data found:', tgUser); // [ЛОГ] Данные TG получены
 
+            console.log('[LOG] Starting authentication...'); // [ЛОГ] Начало аутентификации
             this.authenticate(tgUser.id.toString(), tgUser.username || '');
 
         } catch (error) {
-             console.error("Initialization failed:", error);
-             document.body.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--error-color);">Критическая ошибка при запуске приложения. Обратитесь к администратору.</div>';
+             console.error("[CRITICAL ERROR] Initialization failed:", error); // [ЛОГ] КРИТИЧЕСКАЯ ОШИБКА
+             // Показываем сообщение об ошибке пользователю
+             if(this.elements.loader) this.elements.loader.classList.add('hidden'); // Пытаемся скрыть лоадер
+             document.body.innerHTML = `<div style="padding: 20px; text-align: center; color: var(--error-color);">Критическая ошибка при запуске приложения: ${error.message}. Обратитесь к администратору.</div>`;
         }
     },
 
@@ -274,6 +287,11 @@ const App = {
      * @param {'loader' | 'main' | 'profile' | 'editList' | 'auth'} screenName
      */
     showScreen(screenName) {
+        console.log(`[LOG] showScreen called with: ${screenName}`); // [ЛОГ] Смена экрана
+        if (!this.elements.loader) { // Доп. проверка, если элементы еще не привязаны
+            console.error("[ERROR] Trying to show screen before elements are bound.");
+            return;
+        }
         this.elements.loader.classList.add('hidden');
         this.elements.mainScreen.classList.add('hidden');
         this.elements.profileScreen.classList.add('hidden');
@@ -310,6 +328,7 @@ const App = {
                 this.tg.BackButton.show();
                 break;
         }
+        console.log(`[LOG] Screen ${screenName} shown.`); // [ЛОГ] Экран показан
     },
 
     /**
@@ -328,23 +347,23 @@ const App = {
      * (5.0) Показать ошибку (всплывающее окно)
      */
     showErrorPopup(message, title = "Ошибка") {
+        console.warn(`[POPUP ERROR] ${title}: ${message}`); // [ЛОГ] Показ ошибки
         this.tg.showPopup({
             title: title,
             message: message,
             buttons: [{ id: 'ok', type: 'default', text: 'Понятно' }]
         });
-        console.error(`${title}: ${message}`); // Добавим лог в консоль
     },
 
     /**
      * (5.1) Показать ошибку на экране auth
      */
     showAuthError(message) {
+        console.error(`[AUTH ERROR] ${message}`); // [ЛОГ] Ошибка аутентификации
         this.showScreen('auth');
         // @ts-ignore
         this.elements.authError.innerText = message;
         this.elements.authError.classList.remove('hidden');
-        console.error(`Auth Error: ${message}`); // Добавим лог в консоль
     },
 
     // =============================================
@@ -355,23 +374,28 @@ const App = {
      * (5.1) Проверка пользователя на бэкенде
      */
     async authenticate(tgId, username) {
+        console.log(`[LOG] authenticate(${tgId}, ${username}) called.`); // [ЛОГ] Вызов authenticate
         try {
             this.showScreen('loader');
+            console.log(`[LOG] Sending GET /user/${tgId} request...`); // [ЛОГ] Отправка запроса
             const response = await this.api.get(`/user/${tgId}`);
+            console.log('[LOG] API response received:', response); // [ЛОГ] Ответ получен
 
             if (response.error) {
                 if (response.error === 'not_found') {
-                    console.log('User not found, showing registration.');
+                    console.log('[LOG] User not found by API, showing registration screen.'); // [ЛОГ] Пользователь не найден
                     this.showScreen('auth');
                 } else {
+                    console.error('[ERROR] API returned error during authentication:', response.error); // [ЛОГ] Ошибка API
                     this.showAuthError(`Ошибка сервера: ${response.error}`);
                 }
             } else {
+                console.log('[LOG] Authentication successful, user data:', response.data); // [ЛОГ] Успешная аутентификация
                 this.state.user = response.data;
                 this.onLoginSuccess();
             }
         } catch (e) {
-            console.error('API Request Error:', e);
+            console.error('[ERROR] Network or API client error during authentication:', e); // [ЛОГ] Ошибка сети
             this.showAuthError(`Ошибка сети: Не удалось связаться с сервером.`);
         }
     },
@@ -382,11 +406,13 @@ const App = {
     async handleRegistration(e) {
         e.preventDefault();
         this.tg.HapticFeedback.impactOccurred('light');
+        console.log('[LOG] handleRegistration() called.'); // [ЛОГ] Начало регистрации
 
         // @ts-ignore
         const driverName = this.elements.authNameInput.value.trim();
         const tgUser = this.tg.initDataUnsafe.user;
 
+        console.log('[LOG] Validating driver name:', driverName); // [ЛОГ] Валидация имени
         if (driverName.length < 5) {
             this.showAuthError("ФИО должно быть длиннее 5 символов.");
             return;
@@ -399,30 +425,35 @@ const App = {
             this.showAuthError("Это имя зарезервировано.");
             return;
         }
+        console.log('[LOG] Driver name validation passed.'); // [ЛОГ] Валидация пройдена
 
         // @ts-ignore
         this.elements.authSubmitButton.disabled = true;
         this.elements.authError.classList.add('hidden');
 
         try {
+            console.log('[LOG] Sending POST /register request...'); // [ЛОГ] Отправка запроса регистрации
             const response = await this.api.post('/register', {
                 tgId: tgUser.id.toString(),
                 driverName: driverName,
                 username: tgUser.username || ''
             });
+            console.log('[LOG] Registration API response:', response); // [ЛОГ] Ответ на регистрацию
 
             if (response.error) {
                 this.showAuthError(response.error);
             } else {
+                console.log('[LOG] Registration successful.'); // [ЛОГ] Успешная регистрация
                 this.state.user = response.data;
                 this.onLoginSuccess();
             }
         } catch (e) {
-            console.error('Registration Error:', e);
+            console.error('[ERROR] Network or API client error during registration:', e); // [ЛОГ] Ошибка регистрации
             this.showAuthError("Ошибка сети. Попробуйте еще раз.");
         } finally {
             // @ts-ignore
             this.elements.authSubmitButton.disabled = false;
+            console.log('[LOG] Registration process finished.'); // [ЛОГ] Конец регистрации
         }
     },
 
@@ -430,10 +461,14 @@ const App = {
      * (5.1) Успешный вход (или регистрация)
      */
     onLoginSuccess() {
+        console.log('[LOG] onLoginSuccess() called.'); // [ЛОГ] Успешный вход
         this.elements.profileName.innerText = this.state.user.driver_name;
         this.elements.profileId.innerText = `Ваш ID: ${this.state.user.tg_id}`;
+        console.log('[LOG] Loading form data...'); // [ЛОГ] Загрузка данных формы
         this.loadFormData();
+        console.log('[LOG] Loading draft...'); // [ЛОГ] Загрузка черновика
         this.loadDraft();
+        console.log('[LOG] Showing main screen.'); // [ЛОГ] Показ главного экрана
         this.showScreen('main');
     },
 
@@ -446,6 +481,7 @@ const App = {
      */
     handleChangeName() {
         this.tg.HapticFeedback.impactOccurred('light');
+        console.log('[LOG] handleChangeName() called.'); // [ЛОГ] Смена имени
 
         this.tg.showPopup({
             title: 'Сменить ФИО',
@@ -457,36 +493,46 @@ const App = {
                 { id: 'change', type: 'default', text: 'Сменить' },
             ],
         }, async (buttonId) => {
+            console.log(`[LOG] Change name popup closed with button: ${buttonId}`); // [ЛОГ] Закрытие popup
             if (buttonId === 'change') {
                 const newName = prompt('Введите новое ФИО:', this.state.user.driver_name);
+                console.log('[LOG] New name entered:', newName); // [ЛОГ] Ввод нового имени
 
-                if (!newName || newName.trim() === this.state.user.driver_name) return;
+                if (!newName || newName.trim() === this.state.user.driver_name) {
+                    console.log('[LOG] Name change cancelled or name not changed.'); // [ЛОГ] Отмена смены
+                    return;
+                }
 
                 const sanitizedName = newName.trim();
+                console.log('[LOG] Validating new name:', sanitizedName); // [ЛОГ] Валидация нового имени
                 if (sanitizedName.length < 5 || ['=', '+', '-', '@'].includes(sanitizedName[0])) {
                     this.showErrorPopup("Некорректное ФИО. (Мин. 5 симв., не начинается с =,+, -,@).");
                     return;
                 }
+                console.log('[LOG] New name validation passed.'); // [ЛОГ] Валидация нового имени пройдена
 
                 this.showScreen('loader');
-
                 try {
+                    console.log('[LOG] Sending POST /changeName request...'); // [ЛОГ] Отправка запроса смены имени
                     const response = await this.api.post('/changeName', {
                         tgId: this.state.user.tg_id,
                         newName: sanitizedName
                     });
+                     console.log('[LOG] Change name API response:', response); // [ЛОГ] Ответ на смену имени
 
                     if (response.error) {
                         this.showErrorPopup(response.error);
                     } else {
+                        console.log('[LOG] Name change successful.'); // [ЛОГ] Имя сменено успешно
                         this.state.user.driver_name = sanitizedName;
                         this.elements.profileName.innerText = sanitizedName;
                         this.tg.showPopup({ title: 'Успех', message: 'ФИО изменено.' });
                     }
                 } catch (e) {
-                    console.error('Change Name Error:', e);
+                    console.error('[ERROR] Network or API client error during name change:', e); // [ЛОГ] Ошибка смены имени
                     this.showErrorPopup("Ошибка сети при смене имени.");
                 } finally {
+                    console.log('[LOG] Returning to profile screen after name change attempt.'); // [ЛОГ] Возврат в профиль
                     this.showScreen('profile');
                 }
             }
@@ -501,24 +547,31 @@ const App = {
      * (5.3) GET /api/formData - Загрузка техники, прицепов, проектов
      */
     async loadFormData() {
+        console.log('[LOG] loadFormData() called.'); // [ЛОГ] Начало загрузки данных формы
         try {
             const response = await this.api.get('/formData');
+            console.log('[LOG] Form data API response:', response); // [ЛОГ] Ответ данных формы
+
             if (response.data) {
                 this.state.formData = response.data;
 
+                console.log('[LOG] Populating vehicle select...'); // [ЛОГ] Заполнение техники
                 this.elements.vehicleSelect.innerHTML = '<option value="">— выберите технику —</option>' +
                     response.data.vehicles.map(v => `<option value="${v.vehicle_name}">${v.vehicle_name}</option>`).join('');
 
+                console.log('[LOG] Populating trailer select...'); // [ЛОГ] Заполнение прицепов
                 this.elements.trailerSelect.innerHTML = '<option value="">— выберите прицеп —</option>' +
                     response.data.trailers.map(t => `<option value="${t.vehicle_name}">${t.vehicle_name}</option>`).join('');
 
+                console.log('[LOG] Populating project datalist...'); // [ЛОГ] Заполнение проектов
                 this.elements.projectDatalist.innerHTML =
                     response.data.recentProjects.map(p => `<option value="${p.project}"></option>`).join('');
+                console.log('[LOG] Form data loaded and populated.'); // [ЛОГ] Данные формы загружены
             } else if (response.error) {
                 throw new Error(response.error);
             }
         } catch (e) {
-            console.error('Failed to load form data:', e);
+            console.error('[ERROR] Failed to load form data:', e); // [ЛОГ] Ошибка загрузки данных формы
             this.showErrorPopup("Не удалось загрузить списки техники. Попробуйте перезапустить.");
         }
     },
@@ -527,13 +580,15 @@ const App = {
      * (5.3) Сохранение черновика в localStorage
      */
     handleFormInput(e) {
+        // console.log('[LOG] handleFormInput triggered.'); // [ЛОГ] Слишком частое событие, закомментировано
         // @ts-ignore
         const { id, value, type, checked } = e.target;
         if (id in this.state.currentReport) {
             // @ts-ignore
             this.state.currentReport[id] = type === 'checkbox' ? checked : value;
         } else {
-            console.warn(`Element with ID "${id}" not found in state.currentReport`);
+            // Не логгируем ошибку, так как input события могут приходить от других элементов
+            // console.warn(`Element with ID "${id}" not found in state.currentReport`);
         }
         localStorage.setItem('driver_report_draft', JSON.stringify(this.state.currentReport));
     },
@@ -542,11 +597,14 @@ const App = {
      * (5.3) Загрузка черновика
      */
     loadDraft() {
+        console.log('[LOG] loadDraft() called.'); // [ЛОГ] Начало загрузки черновика
         const draft = localStorage.getItem('driver_report_draft');
         if (draft) {
+             console.log('[LOG] Draft found in localStorage.'); // [ЛОГ] Черновик найден
              try {
                  const parsedDraft = JSON.parse(draft);
                  if (parsedDraft && typeof parsedDraft === 'object') {
+                     console.log('[LOG] Parsing draft successful:', parsedDraft); // [ЛОГ] Парсинг успешен
                      for (const key in this.state.currentReport) {
                         // @ts-ignore
                          if (parsedDraft.hasOwnProperty(key)) {
@@ -555,19 +613,23 @@ const App = {
                          }
                      }
                  } else {
-                      console.warn("Invalid draft found in localStorage:", parsedDraft);
+                      console.warn("[WARN] Invalid draft found in localStorage:", parsedDraft); // [ЛОГ] Невалидный черновик
                       localStorage.removeItem('driver_report_draft');
                  }
             } catch (error) {
-                 console.error("Failed to parse draft from localStorage:", error);
+                 console.error("[ERROR] Failed to parse draft from localStorage:", error); // [ЛОГ] Ошибка парсинга
                  localStorage.removeItem('driver_report_draft');
             }
+        } else {
+            console.log('[LOG] No draft found in localStorage.'); // [ЛОГ] Черновик не найден
         }
 
         if (!this.state.currentReport.date) {
+            console.log('[LOG] Setting default date.'); // [ЛОГ] Установка даты по умолчанию
             this.state.currentReport.date = new Date().toISOString().split('T')[0];
         }
 
+        console.log('[LOG] Filling form with current report state:', this.state.currentReport); // [ЛОГ] Заполнение формы
         this.fillForm(this.state.currentReport);
     },
 
@@ -575,37 +637,44 @@ const App = {
      * (5.3) (5.4) Заполнение формы данными
      */
     fillForm(data) {
-        // @ts-ignore
-        this.elements.dateInput.value = data.date || '';
-        // @ts-ignore
-        this.elements.projectInput.value = data.project || '';
-        // @ts-ignore
-        this.elements.vehicleSelect.value = data.vehicle || '';
-        // @ts-ignore
-        this.elements.addressInput.value = data.address || '';
-        // @ts-ignore
-        this.elements.shiftStartInput.value = data.shift_start || '';
-        // @ts-ignore
-        this.elements.shiftEndInput.value = data.shift_end || '';
-        // @ts-ignore
-        this.elements.trailerSelect.value = data.trailer || '';
-        // @ts-ignore
-        this.elements.overrunInput.value = data.overrun || '';
-        // @ts-ignore
-        this.elements.commentInput.value = data.comment || '';
-        // @ts-ignore
-        this.elements.trailerTimeToggle.checked = data.trailer_diff_time || false;
-        this.updateTrailerTimeVisibility();
-        // @ts-ignore
-        this.elements.trailerStartInput.value = data.trailer_start || '';
-        // @ts-ignore
-        this.elements.trailerEndInput.value = data.trailer_end || '';
+        console.log('[LOG] fillForm() called with data:', data); // [ЛОГ] Начало fillForm
+        try {
+            // @ts-ignore
+            this.elements.dateInput.value = data.date || '';
+            // @ts-ignore
+            this.elements.projectInput.value = data.project || '';
+            // @ts-ignore
+            this.elements.vehicleSelect.value = data.vehicle || '';
+            // @ts-ignore
+            this.elements.addressInput.value = data.address || '';
+            // @ts-ignore
+            this.elements.shiftStartInput.value = data.shift_start || '';
+            // @ts-ignore
+            this.elements.shiftEndInput.value = data.shift_end || '';
+            // @ts-ignore
+            this.elements.trailerSelect.value = data.trailer || '';
+            // @ts-ignore
+            this.elements.overrunInput.value = data.overrun || '';
+            // @ts-ignore
+            this.elements.commentInput.value = data.comment || '';
+            // @ts-ignore
+            this.elements.trailerTimeToggle.checked = data.trailer_diff_time || false;
+            this.updateTrailerTimeVisibility(); // Важно вызвать после установки checkbox
+            // @ts-ignore
+            this.elements.trailerStartInput.value = data.trailer_start || '';
+            // @ts-ignore
+            this.elements.trailerEndInput.value = data.trailer_end || '';
+            console.log('[LOG] Form filled successfully.'); // [ЛОГ] Форма заполнена
+        } catch (error) {
+            console.error('[ERROR] Error during fillForm:', error); // [ЛОГ] Ошибка fillForm
+        }
     },
 
     /**
      * (5.3) Очистка формы (после отправки)
      */
     resetForm() {
+        console.log('[LOG] resetForm() called.'); // [ЛОГ] Сброс формы
         this.state.currentReport = {
             date: new Date().toISOString().split('T')[0],
             project: '', vehicle: '', address: '', shift_start: '', shift_end: '',
@@ -622,6 +691,7 @@ const App = {
      * (5.3) Логика отображения времени прицепа
      */
     updateTrailerTimeVisibility() {
+        // console.log('[LOG] updateTrailerTimeVisibility() called.'); // [ЛОГ] Слишком часто
         // @ts-ignore
         const trailerSelected = this.elements.trailerSelect.value;
         if (trailerSelected) {
@@ -646,6 +716,7 @@ const App = {
      * (5.3) Клик на "Время прицепа отличается"
      */
     toggleTrailerTime() {
+        console.log('[LOG] toggleTrailerTime() called.'); // [ЛОГ] Переключение времени прицепа
         this.tg.HapticFeedback.impactOccurred('light');
         // @ts-ignore
         this.state.currentReport.trailer_diff_time = this.elements.trailerTimeToggle.checked;
@@ -657,15 +728,15 @@ const App = {
      * (5.3) Валидация формы
      */
     validateForm() {
+        console.log('[LOG] validateForm() called.'); // [ЛОГ] Валидация формы
         const data = this.state.currentReport;
-        if (!data.date) return "Укажите дату.";
-        if (!data.project) return "Укажите проект.";
-        if (!data.vehicle) return "Выберите технику.";
-        if (!data.address) return "Укажите адрес.";
-        if (!data.shift_start || !data.shift_end) return "Укажите время начала и конца смены.";
-        if (data.trailer_diff_time && (!data.trailer_start || !data.trailer_end)) {
-            return "Укажите время начала и конца прицепа.";
-        }
+        if (!data.date) { console.warn('[VALIDATION] Date missing.'); return "Укажите дату."; }
+        if (!data.project) { console.warn('[VALIDATION] Project missing.'); return "Укажите проект."; }
+        if (!data.vehicle) { console.warn('[VALIDATION] Vehicle missing.'); return "Выберите технику."; }
+        if (!data.address) { console.warn('[VALIDATION] Address missing.'); return "Укажите адрес."; }
+        if (!data.shift_start || !data.shift_end) { console.warn('[VALIDATION] Shift time missing.'); return "Укажите время начала и конца смены."; }
+        if (data.trailer_diff_time && (!data.trailer_start || !data.trailer_end)) { console.warn('[VALIDATION] Trailer time missing when diff enabled.'); return "Укажите время начала и конца прицепа."; }
+        console.log('[LOG] Form validation passed.'); // [ЛОГ] Валидация пройдена
         return null;
     },
 
@@ -678,7 +749,7 @@ const App = {
             const [sh, sm] = start.split(':').map(Number);
             const [eh, em] = end.split(':').map(Number);
             if (isNaN(sh) || isNaN(sm) || isNaN(eh) || isNaN(em)) {
-                 console.warn("Invalid time format for overtime calculation:", start, end);
+                 console.warn("[WARN] Invalid time format for overtime calculation:", start, end);
                  return 0;
             }
             let diffMinutes = (eh * 60 + em) - (sh * 60 + sm);
@@ -686,7 +757,7 @@ const App = {
             const hours = diffMinutes / 60;
             return hours > 12 ? (hours - 12) : 0;
         } catch (error) {
-             console.error("Error calculating overtime:", error, "Start:", start, "End:", end);
+             console.error("[ERROR] Error calculating overtime:", error, "Start:", start, "End:", end);
              return 0;
         }
     },
@@ -695,6 +766,7 @@ const App = {
      * (5.0) Главная кнопка (Предпросмотр / Редактировать)
      */
     handleMainButtonClick() {
+        console.log('[LOG] handleMainButtonClick() called.'); // [ЛОГ] Нажатие главной кнопки
         this.tg.HapticFeedback.impactOccurred('medium');
         const validationError = this.validateForm();
         if (validationError) {
@@ -702,6 +774,7 @@ const App = {
             return;
         }
 
+        console.log('[LOG] Form validated, calculating preview data...'); // [ЛОГ] Расчет предпросмотра
         const data = this.state.currentReport;
         const shiftOvertime = this.calculateOvertime(data.shift_start, data.shift_end);
         let trailerStart = data.trailer_start;
@@ -715,6 +788,7 @@ const App = {
         } else if (data.trailer && data.trailer_diff_time) {
              trailerOvertime = this.calculateOvertime(trailerStart, trailerEnd);
         }
+        console.log('[LOG] Overtime calculated:', { shiftOvertime, trailerOvertime }); // [ЛОГ] Переработки
 
         let previewMessage = [
             `Дата: ${data.date}`, `Проект: ${data.project}`, `Техника: ${data.vehicle}`,
@@ -724,17 +798,26 @@ const App = {
             previewMessage.push(`Прицеп: ${data.trailer} (${trailerStart} - ${trailerEnd}, Переработка: ${trailerOvertime.toFixed(1)} ч.)`);
         }
         previewMessage.push(`Перепробег: ${data.overrun || 0} км`, `Комментарий: ${data.comment || 'Нет'}`);
+        console.log('[LOG] Preview message generated:', previewMessage.join('\n')); // [ЛОГ] Сообщение предпросмотра
 
         if (this.state.editingReportId) {
+            console.log('[LOG] Showing edit confirmation popup.'); // [ЛОГ] Показ popup редактирования
             this.tg.showPopup({
                 title: 'Подтвердить изменения?', message: previewMessage.join('\n'),
                 buttons: [{ id: 'cancel', type: 'destructive', text: 'Отмена' }, { id: 'send', type: 'default', text: 'Отредактировать' }]
-            }, (buttonId) => { if (buttonId === 'send') this.promptForEditReason(); });
+            }, (buttonId) => {
+                 console.log(`[LOG] Edit confirmation popup closed with: ${buttonId}`); // [ЛОГ] Закрытие popup ред.
+                 if (buttonId === 'send') this.promptForEditReason();
+            });
         } else {
+            console.log('[LOG] Showing submit confirmation popup.'); // [ЛОГ] Показ popup отправки
             this.tg.showPopup({
                 title: 'Отправить отчет?', message: previewMessage.join('\n'),
                 buttons: [{ id: 'cancel', type: 'destructive', text: 'Отмена' }, { id: 'send', type: 'default', text: 'Отправить' }]
-            }, (buttonId) => { if (buttonId === 'send') this.submitReport(); });
+            }, (buttonId) => {
+                 console.log(`[LOG] Submit confirmation popup closed with: ${buttonId}`); // [ЛОГ] Закрытие popup отпр.
+                 if (buttonId === 'send') this.submitReport();
+            });
         }
     },
 
@@ -742,6 +825,7 @@ const App = {
      * (5.3) POST /api/report - Отправка нового отчета
      */
     async submitReport() {
+        console.log('[LOG] submitReport() called.'); // [ЛОГ] Начало отправки
         this.showScreen('loader');
         const sanitizedData = { ...this.state.currentReport };
         for (const key of ['project', 'address', 'comment']) {
@@ -751,20 +835,26 @@ const App = {
                 sanitizedData[key] = "'" + sanitizedData[key];
             }
         }
+        console.log('[LOG] Data sanitized:', sanitizedData); // [ЛОГ] Санитизация данных
+
         try {
+            console.log('[LOG] Sending POST /report request...'); // [ЛОГ] Отправка запроса
             const response = await this.api.post('/report', {
                 tgId: this.state.user.tg_id,
                 reportData: sanitizedData
             });
+             console.log('[LOG] Submit report API response:', response); // [ЛОГ] Ответ на отправку
+
             if (response.error) {
                 this.showErrorPopup(response.error);
                 this.showScreen('main');
             } else {
+                console.log('[LOG] Report submitted successfully.'); // [ЛОГ] Отчет отправлен
                 this.tg.showPopup({ title: 'Успех!', message: 'Отчет успешно отправлен.' });
                 this.resetForm();
             }
         } catch (e) {
-            console.error('Submit Report Error:', e);
+            console.error('[ERROR] Network or API client error during report submission:', e); // [ЛОГ] Ошибка отправки
             this.showErrorPopup("Ошибка сети. Отчет не отправлен. (Данные сохранены в черновике).");
             this.showScreen('main');
         }
@@ -778,18 +868,23 @@ const App = {
      * (5.4) GET /api/reports/:tgId - Показать список отчетов
      */
     async showEditList() {
+        console.log('[LOG] showEditList() called.'); // [ЛОГ] Показ списка ред.
         this.showScreen('loader');
         try {
+            console.log(`[LOG] Sending GET /reports/${this.state.user.tg_id} request...`); // [ЛОГ] Запрос списка
             const response = await this.api.get(`/reports/${this.state.user.tg_id}`);
+            console.log('[LOG] Get reports API response:', response); // [ЛОГ] Ответ списка
+
             if (response.error) {
                 this.showErrorPopup(response.error);
                 this.showScreen('profile');
             } else {
+                console.log('[LOG] Rendering edit list...'); // [ЛОГ] Рендеринг списка
                 this.renderEditList(response.data);
                 this.showScreen('editList');
             }
         } catch (e) {
-            console.error('Show Edit List Error:', e);
+            console.error('[ERROR] Network or API client error during showEditList:', e); // [ЛОГ] Ошибка списка
             this.showErrorPopup("Ошибка сети при загрузке отчетов.");
             this.showScreen('profile');
         }
@@ -799,13 +894,15 @@ const App = {
      * (5.4) Рендеринг списка отчетов
      */
     renderEditList(reports) {
+        console.log('[LOG] renderEditList() called with reports:', reports); // [ЛОГ] Начало рендеринга
         if (!reports || reports.length === 0) {
             this.elements.editListContainer.innerHTML = '<p class="text-center text-gray-400">Нет отчетов для редактирования.</p>';
+            console.log('[LOG] No reports to render.'); // [ЛОГ] Нет отчетов
             return;
         }
         this.elements.editListContainer.innerHTML = reports.map(report => {
             if (!report.payload || typeof report.payload !== 'object') {
-                 console.warn("Invalid report payload found:", report);
+                 console.warn("[WARN] Invalid report payload found during rendering:", report); // [ЛОГ] Невалидный payload
                  return `<div class="report-item error">Ошибка данных отчета (ID: ${report.report_id})</div>`;
             }
             const data = report.payload;
@@ -822,16 +919,19 @@ const App = {
                     </button>
                 </div>`;
         }).join('');
+        console.log('[LOG] Edit list rendered.'); // [ЛОГ] Список отрендерен
 
+        console.log('[LOG] Adding event listeners to edit buttons...'); // [ЛОГ] Добавление слушателей
         this.elements.editListContainer.querySelectorAll('.report-item-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 // @ts-ignore
                 const reportId = e.currentTarget.closest('.report-item').dataset.reportId;
+                console.log(`[LOG] Edit button clicked for report ID: ${reportId}`); // [ЛОГ] Клик по кнопке ред.
                 const reportData = reports.find(r => r.report_id == reportId);
                 if (reportData && reportData.payload) {
                      this.loadReportForEditing(reportData);
                 } else {
-                     console.error("Could not load report for editing, data missing:", reportId);
+                     console.error("[ERROR] Could not load report for editing, data missing:", reportId); // [ЛОГ] Ошибка загрузки для ред.
                      this.showErrorPopup("Не удалось загрузить данные этого отчета.");
                 }
             });
@@ -842,6 +942,7 @@ const App = {
      * (5.4) Загрузка отчета в форму
      */
     loadReportForEditing(report) {
+        console.log('[LOG] loadReportForEditing() called for report:', report); // [ЛОГ] Загрузка для ред.
         this.tg.HapticFeedback.impactOccurred('light');
         this.state.editingReportId = report.report_id;
         this.state.currentReport = { ...report.payload };
@@ -854,11 +955,16 @@ const App = {
      * (5.4) Запрос причины редактирования
      */
     promptForEditReason() {
+        console.log('[LOG] promptForEditReason() called.'); // [ЛОГ] Запрос причины
         const reason = prompt('Укажите причину редактирования (обязательно):');
+        console.log('[LOG] Reason entered:', reason); // [ЛОГ] Причина введена
         if (reason && reason.trim().length > 3) {
             this.submitEditReport(reason.trim());
         } else if (reason !== null) {
+            console.warn('[WARN] Edit reason is too short or empty.'); // [ЛОГ] Причина короткая
             this.showErrorPopup("Причина обязательна (мин. 4 символа).");
+        } else {
+             console.log('[LOG] Edit reason prompt cancelled.'); // [ЛОГ] Отмена ввода причины
         }
     },
 
@@ -866,6 +972,7 @@ const App = {
      * (5.4) PUT /api/report/:reportId - Отправка изменений
      */
     async submitEditReport(reason) {
+        console.log(`[LOG] submitEditReport() called for report ID: ${this.state.editingReportId} with reason: ${reason}`); // [ЛОГ] Отправка изменений
         this.showScreen('loader');
         const sanitizedData = { ...this.state.currentReport };
         for (const key of ['project', 'address', 'comment']) {
@@ -875,21 +982,27 @@ const App = {
                 sanitizedData[key] = "'" + sanitizedData[key];
             }
         }
+         console.log('[LOG] Edit data sanitized:', sanitizedData); // [ЛОГ] Санитизация изменений
+
         try {
+            console.log(`[LOG] Sending PUT /report/${this.state.editingReportId} request...`); // [ЛОГ] Отправка PUT запроса
             const response = await this.api.put(`/report/${this.state.editingReportId}`, {
                 tgId: this.state.user.tg_id,
                 reportData: sanitizedData,
                 reason: reason
             });
+            console.log('[LOG] Edit report API response:', response); // [ЛОГ] Ответ на PUT запрос
+
             if (response.error) {
                 this.showErrorPopup(response.error);
                 this.showScreen('main');
             } else {
+                 console.log('[LOG] Report edited successfully.'); // [ЛОГ] Отчет изменен успешно
                 this.tg.showPopup({ title: 'Успех!', message: 'Отчет успешно отредактирован.' });
                 this.resetForm();
             }
         } catch (e) {
-            console.error('Submit Edit Report Error:', e);
+            console.error('[ERROR] Network or API client error during report edit submission:', e); // [ЛОГ] Ошибка отправки изменений
             this.showErrorPopup("Ошибка сети. Изменения не сохранены. (Данные сохранены в черновике).");
             this.showScreen('main');
         }
@@ -905,6 +1018,7 @@ class ApiClient {
     }
 
     async request(endpoint, options = {}) {
+        console.log(`[API Request] ${options.method || 'GET'} ${endpoint}`); // [ЛОГ] Начало API запроса
         // @ts-ignore
         if (App && App.elements && App.elements.loader) App.elements.loader.classList.remove('hidden');
 
@@ -913,37 +1027,60 @@ class ApiClient {
 
         try {
             const response = await fetch(url, { ...options, headers: { ...headers, ...options.headers } });
+            console.log(`[API Response] ${response.status} ${response.statusText} for ${endpoint}`); // [ЛОГ] Ответ API
 
             if (!response.ok) {
                 let errorPayload = { message: `HTTP error ${response.status}` };
                 try {
                     const errData = await response.json();
-                    console.warn(`API Error ${response.status}:`, errData);
+                    console.warn(`[API Error Body] ${response.status}:`, errData); // [ЛОГ] Тело ошибки API (JSON)
                     errorPayload = { message: errData.error || `HTTP error ${response.status}`, details: errData };
                 } catch (e) {
                      try {
                           const textError = await response.text();
-                          console.warn(`API Error ${response.status} (non-JSON):`, textError);
+                          console.warn(`[API Error Body] ${response.status} (non-JSON):`, textError); // [ЛОГ] Тело ошибки API (текст)
                           errorPayload = { message: `HTTP error ${response.status}: ${textError.substring(0, 100)}` };
-                     } catch (textE) { /* ignore */ }
+                     } catch (textE) { console.error('[API Error] Failed to read error body:', textE); } // [ЛОГ] Не удалось прочитать тело ошибки
                 }
                 return { error: errorPayload.message, details: errorPayload.details };
             }
 
-            if (response.status === 204) return { data: null };
-            return response.json();
+            if (response.status === 204) {
+                 console.log(`[API Response] 204 No Content for ${endpoint}`); // [ЛОГ] 204
+                 return { data: null };
+            }
+            // Клонируем ответ, чтобы прочитать его как JSON, но оставить возможность прочитать еще раз, если нужно
+            const responseClone = response.clone();
+             try {
+                 const jsonData = await response.json();
+                 console.log(`[API Response Body] JSON for ${endpoint}:`, jsonData); // [ЛОГ] Тело ответа JSON
+                 return jsonData; // Возвращаем уже распарсенный JSON
+             } catch (jsonError) {
+                  console.error(`[API Error] Failed to parse JSON response for ${endpoint}:`, jsonError); // [ЛОГ] Ошибка парсинга JSON
+                  // Пытаемся прочитать как текст на случай, если это не JSON
+                  try {
+                       const textData = await responseClone.text();
+                       console.warn(`[API Response Body] Non-JSON text for ${endpoint}:`, textData.substring(0, 200)); // [ЛОГ] Тело ответа (текст)
+                       return { error: `Invalid JSON response: ${textData.substring(0,100)}`}; // Возвращаем ошибку
+                  } catch (textError) {
+                       console.error(`[API Error] Failed to read response body as text for ${endpoint}:`, textError); // [ЛОГ] Ошибка чтения текста
+                       return { error: 'Failed to read response body'};
+                  }
+             }
 
         } catch (e) {
-            console.error('API Request Network Error:', e);
-            return { error: 'Failed to fetch' };
+            console.error('[API Request] Network Error:', e.message); // [ЛОГ] Ошибка сети fetch
+            return { error: 'Failed to fetch' }; // 'Failed to fetch' - стандартная ошибка сети
         } finally {
             // @ts-ignore
              if (App && App.elements && App.elements.loader) App.elements.loader.classList.add('hidden');
+             console.log(`[API Request] Finished ${options.method || 'GET'} ${endpoint}`); // [ЛОГ] Конец API запроса
         }
     }
 
     async get(endpoint) {
         const result = await this.request(endpoint, { method: 'GET' });
+        // Пробрасываем ошибку 'Failed to fetch' выше, чтобы ее ловили try/catch вокруг вызовов API
         if (result.error === 'Failed to fetch') throw new Error('Failed to fetch');
         return result;
     }
@@ -963,11 +1100,12 @@ class ApiClient {
 
 // (2.0) Старт приложения
 document.addEventListener('DOMContentLoaded', () => {
+     console.log('[LOG] DOMContentLoaded event fired.'); // [ЛОГ] DOM загружен
      try {
          App.init();
      } catch (error) {
-          console.error("Critical error during App.init:", error);
-          document.body.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--error-color);">Критическая ошибка при запуске. Свяжитесь с администратором.</div>';
+          console.error("[CRITICAL ERROR] Error during App.init execution:", error); // [ЛОГ] КРИТИЧЕСКАЯ ОШИБКА при выполнении init
+          document.body.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--error-color);">Критическая ошибка при запуске приложения. Свяжитесь с администратором.</div>';
      }
 });
 
