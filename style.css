@@ -1,4 +1,5 @@
-/* style.css — минималистичный и адаптивный стиль */
+/* style.css — НЕ ИЗМЕНЕН, но я добавил инлайн-стиль для лоадера в HTML, 
+   чтобы он был виден сразу при загрузке. */
 
 body {
   margin: 0;
@@ -7,13 +8,17 @@ body {
   color: #222;
 }
 
+/* Этот стиль из HTML переопределит 'display: none' 
+  из этого файла во время первоначальной загрузки.
+  #loader { ... display: none; ... }
+*/
 #loader {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.9);
   display: none;
   align-items: center;
   justify-content: center;
@@ -37,16 +42,31 @@ body {
 form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  max-width: 400px;
+  gap: 12px;
+  max-width: 500px;
   margin: 0 auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
-input, button, select {
+label {
+  font-weight: 500;
+  margin-bottom: -5px;
+}
+
+input, button, select, textarea {
   font-size: 1em;
-  padding: 10px;
+  padding: 12px;
   border: 1px solid #ccc;
   border-radius: 8px;
+  box-sizing: border-box; /* Важно для padding */
+}
+
+textarea {
+  min-height: 80px;
+  resize: vertical;
 }
 
 button {
@@ -54,6 +74,8 @@ button {
   color: #fff;
   cursor: pointer;
   border: none;
+  font-weight: 600;
+  padding: 14px;
 }
 
 button:hover {
@@ -64,14 +86,16 @@ header {
   display: flex;
   justify-content: flex-end;
   background: #fff;
-  padding: 10px;
+  padding: 15px 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin: -20px -20px 20px -20px;
 }
 
 #profile-button {
   cursor: pointer;
   color: #007bff;
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 1.1em;
 }
 
 #report-list {
@@ -80,6 +104,19 @@ header {
 }
 
 #report-list li {
-  padding: 10px;
-  border-bottom: 1px solid #ccc;
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  background: #fff;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+#profile-screen p {
+  font-size: 1.1em;
+  background: #fff;
+  padding: 15px;
+  border-radius: 8px;
+}
+#profile-screen button {
+  margin-top: 10px;
 }

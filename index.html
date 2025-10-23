@@ -5,17 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CinemaWheels TWA</title>
   <link rel="stylesheet" href="style.css" />
-  <script defer src="app.js"></script>
+  <!-- 
+    ДОБАВЛЕНО: 
+    Критически важный скрипт для работы TWA. 
+    Без него window.Telegram.WebApp не определен.
+  -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="app.js"></script>
 </head>
 <body>
-  <div id="loader">Загрузка...</div>
+  <div id="loader" style="display: flex; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 10000;">
+    Загрузка...
+  </div>
 
   <!-- Экран авторизации -->
   <section id="auth-screen" class="screen hidden">
+    <h2>Регистрация</h2>
+    <p>Пожалуйста, введите ваше полное ФИО, как оно записано в документах.</p>
     <form id="auth-form">
-      <label for="auth-name">Имя:</label>
+      <label for="auth-name">ФИО:</label>
       <input type="text" id="auth-name" required />
-      <button type="submit" id="auth-submit">Войти</button>
+      <button type="submit" id="auth-submit">Зарегистрироваться</button>
     </form>
   </section>
 
@@ -25,20 +35,43 @@
       <div id="profile-button">Профиль</div>
     </header>
     <form id="report-form">
-      <input type="text" id="project" list="recent-projects" placeholder="Проект" />
-      <datalist id="recent-projects"></datalist>
+      <!-- 
+        ИСПРАВЛЕНО: 
+        Добавлены все поля, которые ожидает бэкенд (worker.js)
+      -->
+      <label for="date">Дата:</label>
+      <input type="date" id="date" required />
 
-      <label>Начало смены:</label>
+      <label for="project">Проект:</label>
+      <input type="text" id="project" list="recent-projects" placeholder="Проект" required />
+      <datalist id="recent-projects"></datalist>
+      
+      <label for="vehicle">Техника:</label>
+      <select id="vehicle" required></select>
+      
+      <label for="address">Адрес:</label>
+      <input type="text" id="address" placeholder="Адрес" required />
+
+      <label for="shift-start">Начало смены:</label>
       <input type="time" id="shift-start" required />
 
-      <label>Конец смены:</label>
+      <label for="shift-end">Конец смены:</label>
       <input type="time" id="shift-end" required />
 
-      <label>Начало прицепа:</label>
+      <label for="trailer">Прицеп:</label>
+      <select id="trailer"></select>
+      
+      <label for="trailer-start">Начало прицепа:</label>
       <input type="time" id="trailer-start" />
 
-      <label>Конец прицепа:</label>
+      <label for="trailer-end">Конец прицепа:</label>
       <input type="time" id="trailer-end" />
+
+      <label for="overrun">Перепробег (км):</label>
+      <input type="number" id="overrun" placeholder="0" />
+      
+      <label for="comment">Комментарий:</label>
+      <textarea id="comment" placeholder="Доп. информация"></textarea>
 
       <button type="submit">Отправить</button>
     </form>
@@ -46,7 +79,8 @@
 
   <!-- Профиль -->
   <section id="profile-screen" class="screen hidden">
-    <p>ID пользователя: <span id="profile-id"></span></p>
+    <p>Ваш TG ID: <span id="profile-id"></span></p>
+    <p>Имя: <span id="profile-name"></span></p>
     <button id="profile-edit-name">Изменить имя</button>
     <button id="profile-edit-reports">Мои отчёты</button>
     <button id="profile-close">Закрыть</button>
@@ -55,6 +89,7 @@
   <!-- Экран редактирования отчётов -->
   <section id="edit-list-screen" class="screen hidden">
     <h2>Мои отчёты</h2>
+    <p>Показаны 10 последних активных отчётов.</p>
     <ul id="report-list"></ul>
     <button id="edit-list-close-button">Закрыть</button>
   </section>
