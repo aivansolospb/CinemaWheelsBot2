@@ -55,9 +55,9 @@ if (typeof Telegram === 'undefined' || !Telegram.WebApp.initDataUnsafe) {
     };
 }
 
-// (2.0) API_BASE_URL (!!!) - Заменен на ваш
+// (2.0) API_BASE_URL (!!!) - [ИСПРАВЛЕНО]
 // @ts-ignore
-const API_BASE_URL = 'cinemawheels2-backend.aivansolo-spb.workers.dev';
+const API_BASE_URL = 'https://cinemawheels2-backend.aivansolo-spb.workers.dev';
 
 /**
  * (2.0) Главный объект приложения
@@ -839,4 +839,5 @@ class ApiClient {
 document.addEventListener('DOMContentLoaded', () => {
     app.init();
 });
+
 
