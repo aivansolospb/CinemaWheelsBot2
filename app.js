@@ -834,27 +834,45 @@ const App = {
             previewMessage.push(`💬 Комментарий: ${data.comment}`);
         }
         
-        console.log('[LOG] Preview message generated:', previewMessage.join('\n')); // [ЛОГ] Сообщение предпросмотра
+        // [ИЗМЕНЕНО] Улучшенное логирование для отладки
+        const finalMessage = previewMessage.join('\n');
+        console.log('[LOG] Preview message generated. Length: ' + finalMessage.length); // [ЛОГ] Сообщение предпросмотра
+        console.log('--- BEGIN PREVIEW MESSAGE ---');
+        console.log(finalMessage);
+        console.log('--- END PREVIEW MESSAGE ---');
 
         // 5. Показ Popup (логика осталась той же)
-        if (this.state.editingReportId) {
-            console.log('[LOG] Showing edit confirmation popup.'); // [ЛОГ] Показ popup редактирования
-            this.tg.showPopup({
-                title: 'Подтвердить изменения?', message: previewMessage.join('\n'),
-                buttons: [{ id: 'cancel', type: 'destructive', text: 'Отмена' }, { id: 'send', type: 'default', text: 'Отредактировать' }]
-            }, (buttonId) => {
-                 console.log(`[LOG] Edit confirmation popup closed with: ${buttonId}`); // [ЛОГ] Закрытие popup ред.
-                 if (buttonId === 'send') this.promptForEditReason();
-            });
-        } else {
-            console.log('[LOG] Showing submit confirmation popup.'); // [ЛОГ] Показ popup отправки
-            this.tg.showPopup({
-                title: 'Отправить отчет?', message: previewMessage.join('\n'),
-                buttons: [{ id: 'cancel', type: 'destructive', text: 'Отмена' }, { id: 'send', type: 'default', text: 'Отправить' }]
-            }, (buttonId) => {
-                 console.log(`[LOG] Submit confirmation popup closed with: ${buttonId}`); // [ЛОГ] Закрытие popup отпр.
-                 if (buttonId === 'send') this.submitReport();
-            });
+        try { // [ИЗМЕНЕНО] Добавлен try...catch для отладки
+            if (this.state.editingReportId) {
+                console.log('[LOG] Attempting to show EDIT popup...'); // [ЛОГ] Показ popup редактирования
+                this.tg.showPopup({
+                    title: 'Подтвердить изменения?', message: finalMessage,
+                    buttons: [{ id: 'cancel', type: 'destructive', text: 'Отмена' }, { id: 'send', type: 'default', text: 'Отредактировать' }]
+                }, (buttonId) => {
+                     console.log(`[LOG] Edit confirmation popup closed with: ${buttonId}`); // [ЛОГ] Закрытие popup ред.
+                     if (buttonId === 'send') this.promptForEditReason();
+                });
+            } else {
+                console.log('[LOG] Attempting to show SUBMIT popup...'); // [ЛОГ] Показ popup отправки
+                this.tg.showPopup({
+                    title: 'Отправить отчет?', message: finalMessage,
+                    buttons: [{ id: 'cancel', type: 'destructive', text: 'Отмена' }, { id: 'send', type: 'default', text: 'Отправить' }]
+                }, (buttonId) => {
+                     console.log(`[LOG] Submit confirmation popup closed with: ${buttonId}`); // [ЛОГ] Закрытие popup отпр.
+                     if (buttonId === 'send') this.submitReport();
+                });
+            }
+            console.log('[LOG] this.tg.showPopup() executed WITHOUT error.'); // [ЛОГ] Вызов прошел без ошибки
+            
+        } catch (e) {
+            // [ИЗМЕНЕНО] Блок catch для отлова ошибок TWA
+            console.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+            console.error('[CRITICAL TWA ERROR] this.tg.showPopup() FAILED:', e.message);
+            console.error('Stack:', e.stack);
+            console.error('Failed message content was:', finalMessage);
+            console.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+            // Показываем ошибку пользователю, так как TWA не смогла
+            this.showErrorPopup(`[DEBUG] Ошибка TWA: ${e.message}. Не удалось показать предпросмотр.`);
         }
     },
 
