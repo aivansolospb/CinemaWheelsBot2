@@ -252,7 +252,7 @@ textarea {
     display: flex;
     gap: 15px;
 }
-.time-input {
+.time-input-container {
     flex: 1; /* Растягиваем поля времени */
 }
 
