@@ -6,6 +6,14 @@
     <title>Отчеты о смене</title>
     <!-- (2.0) Подключаем Telegram Web App API -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- (НОВОЕ) Sentry SDK для Фронтенда -->
+    <!-- Этот скрипт будет загружать Sentry для отслеживания ошибок -->
+    <script
+      src="https://browser.sentry-cdn.com/7.77.0/init.min.js"
+      crossorigin="anonymous"
+    ></script>
+    
     <!-- (2.0) Подключаем стили -->
     <link rel="stylesheet" href="style.css">
 </head>
@@ -112,13 +120,15 @@
                 <label for="address">Место / Адрес</label>
                 <textarea id="address" name="address" rows="2" placeholder="Где вы работали" required></textarea>
             </div>
-            
-            <!-- (5.3) Смена -->
-            <div class="input-group">
-                <label>Смена (Начало / Конец)</label>
-                <div class="time-inputs">
-                    <!-- ИЗМЕНЕНО: id/name с _ -->
-                    <input type="time" id="shift_start" name="shift_start" required> 
+
+            <!-- (5.3) Смена (Начало / Конец) - [ИСПРАВЛЕНО ID] -->
+            <div class="time-group">
+                <div class="input-group time-input">
+                    <label for="shift_start">Смена (Начало)</label>
+                    <input type="time" id="shift_start" name="shift_start" required>
+                </div>
+                <div class="input-group time-input">
+                    <label for="shift_end">Смена (Конец)</label>
                     <input type="time" id="shift_end" name="shift_end" required>
                 </div>
             </div>
@@ -132,38 +142,40 @@
                 </select>
             </div>
             
-            <!-- (5.3) Логика времени прицепа -->
-            <div id="trailer-time-logic" class="trailer-logic">
-                 <!-- ИЗМЕНЕНО: for/id/name с _ -->
-                <label for="trailer_diff_time" class="toggle-label hidden" id="trailer-time-toggle-label">
-                    <input type="checkbox" id="trailer_diff_time" name="trailer_diff_time">
-                    <span>Время прицепа отличается от времени смены</span>
-                </label>
-                
-                <div id="trailer-time-fields" class="time-inputs hidden">
-                     <!-- ИЗМЕНЕНО: id/name с _ -->
+            <!-- (5.3) Кнопка "Время прицепа" - [ИСПРАВЛЕНО ID] -->
+            <label id="trailer-time-toggle-label" class="toggle-label hidden">
+                <input type="checkbox" id="trailer_diff_time" name="trailer_diff_time" class="toggle-checkbox">
+                Время прицепа отличается от времени смены
+            </label>
+            
+            <!-- (5.3) Время прицепа (Скрыто) - [ИСПРАВЛЕНО ID] -->
+            <div id="trailer-time-fields" class="time-group hidden">
+                <div class="input-group time-input">
+                    <label for="trailer_start">Прицеп (Начало)</label>
                     <input type="time" id="trailer_start" name="trailer_start">
+                </div>
+                <div class="input-group time-input">
+                    <label for="trailer_end">Прицеп (Конец)</label>
                     <input type="time" id="trailer_end" name="trailer_end">
                 </div>
             </div>
-            
+
             <!-- (5.3) Перепробег -->
             <div class="input-group">
                 <label for="overrun">Перепробег (км)</label>
                 <input type="number" id="overrun" name="overrun" min="0" placeholder="0">
             </div>
-            
+
             <!-- (5.3) Комментарий -->
             <div class="input-group">
                 <label for="comment">Комментарий</label>
                 <textarea id="comment" name="comment" rows="3" placeholder="Любые детали, проблемы, заметки..."></textarea>
             </div>
-
         </form>
     </div>
     
     <!-- (2.0) Подключаем логику -->
-    <script src="app.js" defer></script>
+    <script src="app.js"></script>
 </body>
 </html>
 
