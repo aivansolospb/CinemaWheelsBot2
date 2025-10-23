@@ -36,9 +36,21 @@
         color: var(--tg-theme-text-color, #000000);
         border: 1px solid var(--border-color, #c6c6c8);
     }
-    button, .auth-button, .menu-item, .report-item-btn {
+    button, .auth-button, .menu-item, .report-item-btn, .modal-btn-primary {
         background-color: var(--tg-theme-button-color, #007aff);
         color: var(--tg-theme-button-text-color, #ffffff);
+    }
+    .modal-btn-secondary {
+        background-color: var(--tg-theme-secondary-bg-color, #f2f2f7);
+        color: var(--tg-theme-text-color, #000000);
+    }
+    .modal-content {
+         background-color: var(--tg-theme-bg-color, #ffffff);
+    }
+     #modal-body {
+        color: var(--tg-theme-text-color, #000000);
+        border-top: 1px solid var(--border-color, #c6c6c8);
+        border-bottom: 1px solid var(--border-color, #c6c6c8);
     }
     .report-item, .profile-menu {
         border-top: 1px solid var(--border-color, #c6c6c8);
@@ -64,9 +76,21 @@
         color: var(--tg-theme-text-color, var(--tg-dark-theme-text-color));
         border: 1px solid var(--dark-border-color, #38383a);
     }
-     button, .auth-button, .menu-item, .report-item-btn {
+     button, .auth-button, .menu-item, .report-item-btn, .modal-btn-primary {
         background-color: var(--tg-theme-button-color, var(--tg-dark-theme-button-color));
-        color: var(--tg-theme-button-text-color, var(--tg-dark-theme-text-color));
+        color: var(--tg-theme-button-text-color, var(--tg-dark-theme-button-text-color));
+    }
+    .modal-btn-secondary {
+        background-color: var(--tg-theme-secondary-bg-color, var(--tg-dark-theme-secondary-bg-color));
+        color: var(--tg-theme-text-color, var(--tg-dark-theme-text-color));
+    }
+    .modal-content {
+         background-color: var(--tg-theme-bg-color, var(--tg-dark-theme-bg-color));
+    }
+    #modal-body {
+        color: var(--tg-theme-text-color, var(--tg-dark-theme-text-color));
+        border-top: 1px solid var(--dark-border-color, #38383a);
+        border-bottom: 1px solid var(--dark-border-color, #38383a);
     }
      .report-item, .profile-menu {
         border-top: 1px solid var(--dark-border-color, #38383a);
@@ -247,13 +271,13 @@ textarea {
     resize: vertical; /* Разрешаем менять высоту */
 }
 
-/* (5.3) Стили для времени [ИСПРАВЛЕНО] */
+/* (5.3) Стили для времени */
 .time-group {
     display: flex;
-    flex-direction: row; /* Заставляем быть в строку */
+    flex-direction: row; /* [ИСПРАВЛЕНО] */
     gap: 15px;
 }
-.time-input-container { /* Переименовано с .time-input */
+.time-input-container { /* [ИСПРАВЛЕНО] */
     flex: 1; /* Растягиваем поля времени */
 }
 
@@ -418,6 +442,58 @@ textarea {
     fill: var(--tg-theme-button-text-color, #ffffff);
 }
 
+/* [НОВОЕ] Стили модального окна */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+    box-sizing: border-box;
+}
+.modal-content {
+    padding: 20px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+#modal-title {
+    font-size: 1.25em;
+    font-weight: 600;
+    margin: 0;
+}
+#modal-body {
+    font-size: 0.9em;
+    white-space: pre-wrap; /* Сохраняем переносы строк \n */
+    max-height: 50vh; /* Ограничиваем высоту */
+    overflow-y: auto; /* Добавляем скролл, если тело слишком длинное */
+    padding: 10px 0;
+}
+.modal-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+.modal-btn-primary,
+.modal-btn-secondary {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9em;
+    font-weight: 500;
+    cursor: pointer;
+}
+
 
 /* (5.0) Адаптивность (на всякий случай) */
 @media (max-width: 350px) {
@@ -434,3 +510,4 @@ textarea {
         font-size: 1.6em;
     }
 }
+

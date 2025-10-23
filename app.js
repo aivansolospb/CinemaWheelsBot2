@@ -45,15 +45,10 @@ if (typeof Telegram === 'undefined' || !Telegram.WebApp.initDataUnsafe) {
             HapticFeedback: {
                 impactOccurred: (style) => { console.log("Mock Haptic:", style); }
             },
+            // [ИЗМЕНЕНО] Оставляем showErrorPopup для простых ошибок
             showPopup: (params, callback) => {
-                const result = confirm(`${params.title}\n\n${params.message}`);
-                if (callback) {
-                    if (params.buttons.length > 1) {
-                         callback(result ? params.buttons[1].id : params.buttons[0].id);
-                    } else if (params.buttons.length === 1) {
-                         callback(params.buttons[0].id);
-                    }
-                }
+                alert(`${params.title}\n\n${params.message}`);
+                if (callback) callback('ok');
             },
             close: () => { console.log("Mock WebApp close()"); }
         }
@@ -121,7 +116,14 @@ const App = {
         profileCloseButton: null,
         // (5.4) Редактирование
         editListContainer: null,
-        editListCloseButton: null
+        editListCloseButton: null,
+        // [НОВОЕ] Модальное окно
+        modalOverlay: null,
+        modal: null,
+        modalTitle: null,
+        modalBody: null,
+        modalCancelButton: null,
+        modalConfirmButton: null,
     },
 
     // (2.0) Состояние
@@ -207,6 +209,15 @@ const App = {
             // (5.4) Редактирование
             this.elements.editListContainer = document.getElementById('edit-list-container');
             this.elements.editListCloseButton = document.getElementById('edit-list-close-button');
+            
+            // [НОВОЕ] Модальное окно
+            this.elements.modalOverlay = document.getElementById('modal-overlay');
+            this.elements.modal = document.getElementById('modal');
+            this.elements.modalTitle = document.getElementById('modal-title');
+            this.elements.modalBody = document.getElementById('modal-body');
+            this.elements.modalCancelButton = document.getElementById('modal-cancel-btn');
+            this.elements.modalConfirmButton = document.getElementById('modal-confirm-btn');
+            
             console.log('[LOG] DOM elements bound successfully.'); // [ЛОГ] Элементы привязаны
 
             // (2.0) Инициализация API
@@ -276,6 +287,15 @@ const App = {
         // (5.4) Редактирование отчетов
         this.elements.profileEditReportsButton.addEventListener('click', () => this.showEditList());
         this.elements.editListCloseButton.addEventListener('click', () => this.showScreen('profile'));
+
+        // [НОВОЕ] Обработчики модального окна
+        this.elements.modalCancelButton.addEventListener('click', () => this.hidePreviewModal());
+        // Закрытие по клику на фон
+        this.elements.modalOverlay.addEventListener('click', (e) => {
+            if (e.target === this.elements.modalOverlay) {
+                this.hidePreviewModal();
+            }
+        });
     },
 
     // =============================================
@@ -297,6 +317,7 @@ const App = {
         this.elements.profileScreen.classList.add('hidden');
         this.elements.editListScreen.classList.add('hidden');
         this.elements.authScreen.classList.add('hidden');
+        this.elements.modalOverlay.classList.add('hidden'); // [НОВОЕ] Скрываем модалку
 
         this.tg.BackButton.hide();
         this.tg.MainButton.hide();
@@ -345,6 +366,7 @@ const App = {
 
     /**
      * (5.0) Показать ошибку (всплывающее окно)
+     * [ИЗМЕНЕНО] Оставляем tg.showPopup для простых ошибок
      */
     showErrorPopup(message, title = "Ошибка") {
         console.warn(`[POPUP ERROR] ${title}: ${message}`); // [ЛОГ] Показ ошибки
@@ -364,6 +386,46 @@ const App = {
         // @ts-ignore
         this.elements.authError.innerText = message;
         this.elements.authError.classList.remove('hidden');
+    },
+
+    // [НОВОЕ] Показ модального окна
+    showPreviewModal(title, message, confirmText, onConfirm) {
+        console.log('[LOG] showPreviewModal called.');
+        this.elements.modalTitle.innerText = title;
+        this.elements.modalBody.innerText = message; // `white-space: pre-wrap` в CSS обработает \n
+        
+        // [НОВОЕ] Динамическое назначение обработчика, чтобы избежать дублирования
+        // 1. Клонируем кнопку
+        const newConfirmBtn = this.elements.modalConfirmButton.cloneNode(true);
+        // @ts-ignore
+        newConfirmBtn.innerText = confirmText;
+        
+        // 2. Добавляем новый обработчик
+        newConfirmBtn.addEventListener('click', () => {
+            console.log('[LOG] Modal confirm clicked.');
+            this.tg.HapticFeedback.impactOccurred('medium');
+            onConfirm(); // Выполняем действие
+            this.hidePreviewModal(); // Скрываем окно
+        });
+
+        // 3. Заменяем старую кнопку новой
+        this.elements.modalConfirmButton.parentNode.replaceChild(newConfirmBtn, this.elements.modalConfirmButton);
+        // 4. Переназначаем элемент в App.elements
+        this.elements.modalConfirmButton = newConfirmBtn;
+
+        // Показываем окно
+        this.elements.modalOverlay.classList.remove('hidden');
+        this.tg.MainButton.hide(); // Прячем главную кнопку, пока открыта модалка
+    },
+
+    // [НОВОЕ] Скрытие модального окна
+    hidePreviewModal() {
+        console.log('[LOG] hidePreviewModal called.');
+        this.elements.modalOverlay.classList.add('hidden');
+        // Показываем кнопку "Предпросмотр" только если мы на главном экране
+        if (!this.elements.mainScreen.classList.contains('hidden')) {
+             this.tg.MainButton.show();
+        }
     },
 
     // =============================================
@@ -482,7 +544,8 @@ const App = {
     handleChangeName() {
         this.tg.HapticFeedback.impactOccurred('light');
         console.log('[LOG] handleChangeName() called.'); // [ЛОГ] Смена имени
-
+        
+        // [ИЗМЕНЕНО] Используем tg.showPopup для запроса смены имени, т.к. он простой
         this.tg.showPopup({
             title: 'Сменить ФИО',
             message: 'Введите новое ФИО. (Проверки безопасности те же, что при регистрации).',
@@ -494,6 +557,8 @@ const App = {
             ],
         }, async (buttonId) => {
             console.log(`[LOG] Change name popup closed with button: ${buttonId}`); // [ЛОГ] Закрытие popup
+            
+            // [ИЗМЕНЕНО] Используем простой prompt(), т.к. showPopup не возвращает текст
             if (buttonId === 'change') {
                 const newName = prompt('Введите новое ФИО:', this.state.user.driver_name);
                 console.log('[LOG] New name entered:', newName); // [ЛОГ] Ввод нового имени
@@ -770,13 +835,12 @@ const App = {
         this.tg.HapticFeedback.impactOccurred('medium');
         const validationError = this.validateForm();
         if (validationError) {
+            // [ИЗМЕНЕНО] Используем tg.showPopup для простых ошибок
             this.showErrorPopup(validationError);
             return;
         }
 
         console.log('[LOG] Form validated, calculating preview data...'); // [ЛОГ] Расчет предпросмотра
-        
-        // [ИЗМЕНЕНО] Логика сборки предпросмотра по новому шаблону
         
         const data = this.state.currentReport;
         
@@ -798,16 +862,17 @@ const App = {
         // 2. Вспомогательные функции
         const fHours = (h) => h > 0 ? `${h.toFixed(1)} ч.` : '0 ч.';
         
+        // [ИЗМЕНЕНО] Убираем 'truncate', модальное окно скроллится
+        
         // 3. Данные водителя
         const user = this.state.user;
         const tgUser = this.tg.initDataUnsafe.user;
         const tgUserLink = tgUser.username ? `@${tgUser.username}` : `(ID: ${user.tg_id})`;
         const driverString = `${user.driver_name} ${tgUserLink}`;
 
-        // 4. Сборка сообщения
+        // 4. Сборка сообщения (БЕЗ усечения)
         let previewMessage = [
-            this.state.editingReportId ? `✍️ Проверьте изменения (ID: ${this.state.editingReportId})` : '🔔 Отчёт о смене',
-            ''
+            // Заголовок для модального окна будет передан отдельно
         ];
         
         if (data.date) previewMessage.push(`🗓 ${data.date}`);
@@ -821,7 +886,6 @@ const App = {
             previewMessage.push(`🕔 Смена: ${data.shift_start} — ${data.shift_end} (Переработка: ${fHours(shiftOvertime)})`);
         }
         
-        // Используем рассчитанные trailerStart/trailerEnd
         if (data.trailer) {
             previewMessage.push(`🕔 Смена прицепа: ${trailerStart || ''} — ${trailerEnd || ''} (Переработка: ${fHours(trailerOvertime)})`);
         }
@@ -834,45 +898,24 @@ const App = {
             previewMessage.push(`💬 Комментарий: ${data.comment}`);
         }
         
-        // [ИЗМЕНЕНО] Улучшенное логирование для отладки
         const finalMessage = previewMessage.join('\n');
-        console.log('[LOG] Preview message generated. Length: ' + finalMessage.length); // [ЛОГ] Сообщение предпросмотра
-        console.log('--- BEGIN PREVIEW MESSAGE ---');
-        console.log(finalMessage);
-        console.log('--- END PREVIEW MESSAGE ---');
+        console.log('[LOG] Preview message generated. Length: ' + finalMessage.length);
 
-        // 5. Показ Popup (логика осталась той же)
-        try { // [ИЗМЕНЕНО] Добавлен try...catch для отладки
-            if (this.state.editingReportId) {
-                console.log('[LOG] Attempting to show EDIT popup...'); // [ЛОГ] Показ popup редактирования
-                this.tg.showPopup({
-                    title: 'Подтвердить изменения?', message: finalMessage,
-                    buttons: [{ id: 'cancel', type: 'destructive', text: 'Отмена' }, { id: 'send', type: 'default', text: 'Отредактировать' }]
-                }, (buttonId) => {
-                     console.log(`[LOG] Edit confirmation popup closed with: ${buttonId}`); // [ЛОГ] Закрытие popup ред.
-                     if (buttonId === 'send') this.promptForEditReason();
-                });
-            } else {
-                console.log('[LOG] Attempting to show SUBMIT popup...'); // [ЛОГ] Показ popup отправки
-                this.tg.showPopup({
-                    title: 'Отправить отчет?', message: finalMessage,
-                    buttons: [{ id: 'cancel', type: 'destructive', text: 'Отмена' }, { id: 'send', type: 'default', text: 'Отправить' }]
-                }, (buttonId) => {
-                     console.log(`[LOG] Submit confirmation popup closed with: ${buttonId}`); // [ЛОГ] Закрытие popup отпр.
-                     if (buttonId === 'send') this.submitReport();
-                });
-            }
-            console.log('[LOG] this.tg.showPopup() executed WITHOUT error.'); // [ЛОГ] Вызов прошел без ошибки
-            
-        } catch (e) {
-            // [ИЗМЕНЕНО] Блок catch для отлова ошибок TWA
-            console.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-            console.error('[CRITICAL TWA ERROR] this.tg.showPopup() FAILED:', e.message);
-            console.error('Stack:', e.stack);
-            console.error('Failed message content was:', finalMessage);
-            console.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-            // Показываем ошибку пользователю, так как TWA не смогла
-            this.showErrorPopup(`[DEBUG] Ошибка TWA: ${e.message}. Не удалось показать предпросмотр.`);
+        // 5. [ИЗМЕНЕНО] Показ модального окна
+        if (this.state.editingReportId) {
+            this.showPreviewModal(
+                'Подтвердить изменения?', 
+                finalMessage, 
+                'Отредактировать', 
+                () => this.promptForEditReason() // Передаем функцию
+            );
+        } else {
+            this.showPreviewModal(
+                'Отправить отчет?',
+                finalMessage,
+                'Отправить',
+                () => this.submitReport() // Передаем функцию
+            );
         }
     },
 
@@ -1163,3 +1206,4 @@ document.addEventListener('DOMContentLoaded', () => {
           document.body.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--error-color);">Критическая ошибка при запуске приложения. Свяжитесь с администратором.</div>';
      }
 });
+
