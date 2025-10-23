@@ -763,7 +763,7 @@ const App = {
     },
 
     /**
-     * (5.0) Главная кнопка (Предпросмотр / Редактировать)
+     * (5.0) [ИЗМЕНЕНО] Главная кнопка (Предпросмотр / Редактировать)
      */
     handleMainButtonClick() {
         console.log('[LOG] handleMainButtonClick() called.'); // [ЛОГ] Нажатие главной кнопки
@@ -775,8 +775,14 @@ const App = {
         }
 
         console.log('[LOG] Form validated, calculating preview data...'); // [ЛОГ] Расчет предпросмотра
+        
+        // [ИЗМЕНЕНО] Логика сборки предпросмотра по новому шаблону
+        
         const data = this.state.currentReport;
+        
+        // 1. Расчеты
         const shiftOvertime = this.calculateOvertime(data.shift_start, data.shift_end);
+        
         let trailerStart = data.trailer_start;
         let trailerEnd = data.trailer_end;
         let trailerOvertime = 0;
@@ -788,18 +794,49 @@ const App = {
         } else if (data.trailer && data.trailer_diff_time) {
              trailerOvertime = this.calculateOvertime(trailerStart, trailerEnd);
         }
-        console.log('[LOG] Overtime calculated:', { shiftOvertime, trailerOvertime }); // [ЛОГ] Переработки
+        
+        // 2. Вспомогательные функции
+        const fHours = (h) => h > 0 ? `${h.toFixed(1)} ч.` : '0 ч.';
+        
+        // 3. Данные водителя
+        const user = this.state.user;
+        const tgUser = this.tg.initDataUnsafe.user;
+        const tgUserLink = tgUser.username ? `@${tgUser.username}` : `(ID: ${user.tg_id})`;
+        const driverString = `${user.driver_name} ${tgUserLink}`;
 
+        // 4. Сборка сообщения
         let previewMessage = [
-            `Дата: ${data.date}`, `Проект: ${data.project}`, `Техника: ${data.vehicle}`,
-            `Адрес: ${data.address}`, `Смена: ${data.shift_start} - ${data.shift_end} (Переработка: ${shiftOvertime.toFixed(1)} ч.)`
+            this.state.editingReportId ? `✍️ Проверьте изменения (ID: ${this.state.editingReportId})` : '🔔 Отчёт о смене',
+            ''
         ];
-        if (data.trailer) {
-            previewMessage.push(`Прицеп: ${data.trailer} (${trailerStart} - ${trailerEnd}, Переработка: ${trailerOvertime.toFixed(1)} ч.)`);
+        
+        if (data.date) previewMessage.push(`🗓 ${data.date}`);
+        if (driverString) previewMessage.push(`👤 Водитель: ${driverString}`);
+        if (data.project) previewMessage.push(`🎬 Проект: ${data.project}`);
+        if (data.vehicle) previewMessage.push(`🚚 Техника: ${data.vehicle}`);
+        if (data.trailer) previewMessage.push(`➕ Прицеп: ${data.trailer}`);
+        if (data.address) previewMessage.push(`📍 Адрес: ${data.address}`);
+        
+        if (data.shift_start && data.shift_end) {
+            previewMessage.push(`🕔 Смена: ${data.shift_start} — ${data.shift_end} (Переработка: ${fHours(shiftOvertime)})`);
         }
-        previewMessage.push(`Перепробег: ${data.overrun || 0} км`, `Комментарий: ${data.comment || 'Нет'}`);
+        
+        // Используем рассчитанные trailerStart/trailerEnd
+        if (data.trailer) {
+            previewMessage.push(`🕔 Смена прицепа: ${trailerStart || ''} — ${trailerEnd || ''} (Переработка: ${fHours(trailerOvertime)})`);
+        }
+        
+        if (data.overrun) {
+            previewMessage.push(`🛣 Перепробег: ${data.overrun} км`);
+        }
+        
+        if (data.comment) {
+            previewMessage.push(`💬 Комментарий: ${data.comment}`);
+        }
+        
         console.log('[LOG] Preview message generated:', previewMessage.join('\n')); // [ЛОГ] Сообщение предпросмотра
 
+        // 5. Показ Popup (логика осталась той же)
         if (this.state.editingReportId) {
             console.log('[LOG] Showing edit confirmation popup.'); // [ЛОГ] Показ popup редактирования
             this.tg.showPopup({
@@ -1108,4 +1145,3 @@ document.addEventListener('DOMContentLoaded', () => {
           document.body.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--error-color);">Критическая ошибка при запуске приложения. Свяжитесь с администратором.</div>';
      }
 });
-
