@@ -93,7 +93,7 @@ const App = {
         reportForm: null,
         headerTitle: null,
         profileButton: null,
-        adminIndicator: null, // [НОВОЕ]
+        // adminIndicator: null, // [УДАЛЕНО]
         // (5.3) Поля
         dateInput: null,
         projectInput: null,
@@ -191,7 +191,7 @@ const App = {
             this.elements.reportForm = document.getElementById('report-form');
             this.elements.headerTitle = document.getElementById('header-title');
             this.elements.profileButton = document.getElementById('profile-button');
-            this.elements.adminIndicator = document.getElementById('admin-indicator'); // [НОВОЕ]
+            // this.elements.adminIndicator = document.getElementById('admin-indicator'); // [УДАЛЕНО]
 
             // (5.3) Поля
             this.elements.dateInput = document.getElementById('date');
@@ -334,7 +334,7 @@ const App = {
     // =============================================
 
     /**
-     * (5.0) Показать экран
+     * [ИЗМЕНЕНО] (5.0) Показать экран
      * @param {'loader' | 'main' | 'profile' | 'editList' | 'auth'} screenName
      */
     showScreen(screenName) {
@@ -360,17 +360,20 @@ const App = {
                 break;
             case 'auth':
                 this.elements.authScreen.classList.remove('hidden');
-                const user = this.tg.initDataUnsafe.user;
-                const name = [user.first_name, user.last_name].filter(Boolean).join(' ');
+                const tgUser = this.tg.initDataUnsafe.user;
+                const name = [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ');
                 // @ts-ignore
                 this.elements.authNameInput.value = name;
                 break;
             case 'main':
                 this.elements.mainScreen.classList.remove('hidden');
                 this.tg.MainButton.setParams({ text: 'ПРЕДПРОСМОТР', is_visible: true });
-                this.elements.headerTitle.innerText = this.state.editingReportId
+                // [ИЗМЕНЕНО] Установка заголовка с учетом роли
+                const isAdmin = this.state.user && this.state.user.role === 'admin';
+                const baseTitle = this.state.editingReportId
                     ? `Редактирование (ID: ${this.state.editingReportId})`
                     : 'Отчёт о смене';
+                this.elements.headerTitle.innerText = isAdmin ? `${baseTitle} (Админка)` : baseTitle;
                 break;
             case 'profile':
                 this.elements.profileScreen.classList.remove('hidden');
@@ -582,6 +585,8 @@ const App = {
                 // Если ошибка - НЕ UNIQUE constraint (например, "имя занято")
                 if (!response.details || !response.details.cause || !response.details.cause.includes('UNIQUE constraint failed')) {
                      this.showAuthError(response.error);
+                     // @ts-ignore
+                     this.elements.authSubmitButton.disabled = false; // Разблокируем кнопку при ошибке
                 } else {
                      // Если это ошибка UNIQUE constraint (пользователь уже есть),
                      // просто перезагружаем, чтобы залогиниться.
@@ -590,18 +595,15 @@ const App = {
                 }
             } else {
                 console.log('[LOG] Registration successful. Reloading page...'); // [ЛОГ] Успешная регистрация, перезагрузка
-                // [ИЗМЕНЕНО] Вместо onLoginSuccess, перезагружаем страницу
+                // Перезагружаем страницу
                 location.reload();
             }
         } catch (e) {
             console.error('[ERROR] Network or API client error during registration:', e); // [ЛОГ] Ошибка регистрации
             this.showAuthError("Ошибка сети. Попробуйте еще раз.");
-        } finally {
             // @ts-ignore
-            // [ИЗМЕНЕНО] Кнопка разблокируется только если не было перезагрузки
-            if (!location.reload) {
-                this.elements.authSubmitButton.disabled = false;
-            }
+            this.elements.authSubmitButton.disabled = false; // Разблокируем кнопку при ошибке сети
+        } finally {
             console.log('[LOG] Registration process finished.'); // [ЛОГ] Конец регистрации
         }
     },
@@ -625,13 +627,12 @@ const App = {
 
         console.log('[LOG] State updated, user name set in profile:', this.state.user.driver_name); // [ЛОГ] Имя в профиле обновлено
 
-        // [НОВОЕ] Показываем индикатор админа, если роль = admin
-        if (userData.role === 'admin') {
-            console.log('[LOG] User is admin. Showing admin indicator.');
-            this.elements.adminIndicator.classList.remove('hidden');
-        } else {
-            this.elements.adminIndicator.classList.add('hidden');
-        }
+        // [ИЗМЕНЕНО] Установка заголовка с учетом роли
+        const isAdmin = this.state.user && this.state.user.role === 'admin';
+        const baseTitle = 'Отчёт о смене'; // Базовый заголовок при первом входе
+        this.elements.headerTitle.innerText = isAdmin ? `${baseTitle} (Админка)` : baseTitle;
+        if(isAdmin) console.log('[LOG] User is admin. Title updated.');
+
 
         console.log('[LOG] Loading form data...'); // [ЛОГ] Загрузка данных формы
         this.loadFormData();

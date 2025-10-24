@@ -48,7 +48,7 @@
     .report-item, .profile-menu {
         border-top: 1px solid var(--border-color, #c6c6c8);
     }
-    .auth-error, .modal-error, #admin-indicator {
+    .auth-error, .modal-error { /* [УДАЛЕНО] #admin-indicator */
         color: var(--error-color, #ff3b30);
     }
     .auth-subtitle, .auth-icon, .profile-id, .report-item-date, .report-item-project {
@@ -96,7 +96,7 @@
      .report-item, .profile-menu {
         border-top: 1px solid var(--dark-border-color, #38383a);
     }
-     .auth-error, .modal-error, #admin-indicator {
+     .auth-error, .modal-error { /* [УДАЛЕНО] #admin-indicator */
         color: var(--error-color, #ff3b30); /* Оставляем ярким */
     }
     .auth-subtitle, .auth-icon, .profile-id, .report-item-date, .report-item-project {
@@ -222,31 +222,20 @@ body {
     padding-bottom: 70px; /* Место для MainButton */
 }
 
-/* [ИЗМЕНЕНО] Стили хедера */
+/* [ИЗМЕНЕНО] Стили хедера (убраны стили для #admin-indicator) */
 .screen-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start; /* Выравнивание по верху для админки */
+    align-items: center; /* Возвращаем выравнивание по центру */
     padding-bottom: 15px;
     margin-bottom: 20px;
     position: relative; /* Для позиционирования кнопки профиля */
-}
-/* [НОВОЕ] Стили индикатора админки */
-#admin-indicator {
-    position: absolute; /* Позиционируем относительно хедера */
-    top: -5px; /* Немного выше заголовка */
-    left: 0;
-    font-size: 0.8em;
-    font-weight: bold;
-    padding: 2px 5px;
-    border-radius: 4px;
-    background-color: var(--tg-theme-secondary-bg-color); /* Фон под текстом */
 }
 .screen-title {
     font-size: 1.5em;
     font-weight: 600;
     margin: 0;
-    margin-top: 1.2em; /* Отодвигаем заголовок вниз, если есть админка */
+    /* margin-top: 1.2em; */ /* [УДАЛЕНО] Отступ больше не нужен */
     flex-grow: 1; /* Занимает доступное пространство */
     text-align: left; /* Выравнивание текста */
 }
@@ -258,9 +247,9 @@ body {
     color: var(--tg-theme-button-color, #007aff);
     flex-shrink: 0; /* Не сжиматься */
 }
-.profile-button {
-     margin-top: 1.1em; /* Выравниваем кнопку по заголовку */
-}
+/* .profile-button {
+     margin-top: 1.1em; */ /* [УДАЛЕНО] Выравнивание больше не нужно */
+/* } */
 .profile-button svg {
     width: 28px;
     height: 28px;
@@ -606,4 +595,3 @@ textarea {
          font-size: 1.2em;
     }
 }
-
