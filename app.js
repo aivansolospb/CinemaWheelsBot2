@@ -535,7 +535,7 @@ const App = {
                 }
             } else {
                 console.log('[LOG] Authentication successful, user data:', response.data); // [ЛОГ] Успешная аутентификация
-                // [ИЗМЕНЕНО] Используем onLoginSuccess с передачей данных
+                // Используем onLoginSuccess с передачей данных
                 this.onLoginSuccess(response.data);
             }
         } catch (e) {
@@ -577,24 +577,32 @@ const App = {
             console.log('[LOG] Registration API response:', response); // [ЛОГ] Ответ на регистрацию
 
             if (response.error) {
-                this.showAuthError(response.error);
+                // Если ошибка - НЕ UNIQUE constraint (например, "имя занято")
+                if (!response.details || !response.details.cause || !response.details.cause.includes('UNIQUE constraint failed')) {
+                     this.showAuthError(response.error);
+                } else {
+                     // Если это ошибка UNIQUE constraint (пользователь уже есть),
+                     // просто перезагружаем, чтобы залогиниться.
+                     console.warn('[LOG] User already exists (UNIQUE constraint failed). Reloading to login...');
+                     location.reload();
+                }
             } else {
-                console.log('[LOG] Registration successful.'); // [ЛОГ] Успешная регистрация
-                // [ИЗМЕНЕНО] Передаем данные пользователя напрямую в onLoginSuccess
-                this.onLoginSuccess(response.data);
+                console.log('[LOG] Registration successful. Reloading page...'); // [ЛОГ] Успешная регистрация, перезагрузка
+                // [ИЗМЕНЕНО] Вместо onLoginSuccess, перезагружаем страницу
+                location.reload();
             }
         } catch (e) {
             console.error('[ERROR] Network or API client error during registration:', e); // [ЛОГ] Ошибка регистрации
             this.showAuthError("Ошибка сети. Попробуйте еще раз.");
         } finally {
             // @ts-ignore
-            this.elements.authSubmitButton.disabled = false;
+            this.elements.authSubmitButton.disabled = false; // Разблокируем кнопку в любом случае (кроме успешной перезагрузки)
             console.log('[LOG] Registration process finished.'); // [ЛОГ] Конец регистрации
         }
     },
 
     /**
-     * [ИЗМЕНЕНО] (5.1) Успешный вход (или регистрация)
+     * (5.1) Успешный вход (или регистрация)
      * @param {object} userData - Данные пользователя, полученные от API
      */
     onLoginSuccess(userData) {
@@ -605,7 +613,7 @@ const App = {
              return;
         }
 
-        // [ИЗМЕНЕНО] Устанавливаем состояние И используем переданные данные для UI
+        // Устанавливаем состояние И используем переданные данные для UI
         this.state.user = userData;
         this.elements.profileName.innerText = userData.driver_name;
         this.elements.profileId.innerText = `Ваш ID: ${userData.tg_id}`;
@@ -693,7 +701,7 @@ const App = {
             this.showErrorPopup("Ошибка сети при смене имени.");
         } finally {
             console.log('[LOG] Returning to profile screen after name change attempt.');
-            // [ИЗМЕНЕНО] Убедимся, что возвращаемся именно в профиль
+            // Убедимся, что возвращаемся именно в профиль
             this.showScreen('profile');
         }
     },
@@ -1062,7 +1070,7 @@ const App = {
         };
 
         const user = this.state.user;
-        // [ИЗМЕНЕНО] Добавляем проверку на случай, если user еще не загружен
+        // Добавляем проверку на случай, если user еще не загружен
         if (!user) {
              console.error('[CRITICAL ERROR] User state is null in handleMainButtonClick!');
              this.showErrorPopup('Ошибка: данные пользователя не загружены. Перезапустите приложение.');
@@ -1344,6 +1352,7 @@ class ApiClient {
                           errorPayload = { message: `HTTP error ${response.status}: ${textError.substring(0, 100)}` };
                      } catch (textE) { console.error('[API Error] Failed to read error body:', textE); } // [ЛОГ] Не удалось прочитать тело ошибки
                 }
+                // [ИЗМЕНЕНО] Возвращаем details для D1_ERROR
                 return { error: errorPayload.message, details: errorPayload.details };
             }
 
@@ -1351,18 +1360,18 @@ class ApiClient {
                  console.log(`[API Response] 204 No Content for ${endpoint}`); // [ЛОГ] 204
                  return { data: null };
             }
-
+            
             const responseClone = response.clone();
              try {
                  const jsonData = await response.json();
                  console.log(`[API Response Body] JSON for ${endpoint}:`, jsonData); // [ЛОГ] Тело ответа JSON
-                 return jsonData;
+                 return jsonData; 
              } catch (jsonError) {
                   console.error(`[API Error] Failed to parse JSON response for ${endpoint}:`, jsonError); // [ЛОГ] Ошибка парсинга JSON
                   try {
                        const textData = await responseClone.text();
                        console.warn(`[API Response Body] Non-JSON text for ${endpoint}:`, textData.substring(0, 200)); // [ЛОГ] Тело ответа (текст)
-                       return { error: `Invalid JSON response: ${textData.substring(0,100)}`};
+                       return { error: `Invalid JSON response: ${textData.substring(0,100)}`}; 
                   } catch (textError) {
                        console.error(`[API Error] Failed to read response body as text for ${endpoint}:`, textError); // [ЛОГ] Ошибка чтения текста
                        return { error: 'Failed to read response body'};
@@ -1371,7 +1380,7 @@ class ApiClient {
 
         } catch (e) {
             console.error('[API Request] Network Error:', e.message); // [ЛОГ] Ошибка сети fetch
-            return { error: 'Failed to fetch' };
+            return { error: 'Failed to fetch' }; 
         } finally {
             // @ts-ignore
              if (App && App.elements && App.elements.loader) App.elements.loader.classList.add('hidden');
