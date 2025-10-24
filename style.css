@@ -43,7 +43,7 @@
     .report-item, .profile-menu {
         border-top: 1px solid var(--border-color, #c6c6c8);
     }
-    .auth-error {
+    .auth-error, .modal-error { /* [ИЗМЕНЕНО] Добавлен .modal-error */
         color: var(--error-color, #ff3b30);
     }
     .auth-subtitle, .auth-icon, .profile-id, .report-item-date, .report-item-project {
@@ -85,7 +85,7 @@
      .report-item, .profile-menu {
         border-top: 1px solid var(--dark-border-color, #38383a);
     }
-     .auth-error {
+     .auth-error, .modal-error { /* [ИЗМЕНЕНО] Добавлен .modal-error */
         color: var(--error-color, #ff3b30); /* Оставляем ярким */
     }
     .auth-subtitle, .auth-icon, .profile-id, .report-item-date, .report-item-project {
@@ -530,6 +530,7 @@ textarea {
 .modal-actions {
     display: flex;
     gap: 10px;
+    margin-top: 20px; /* [НОВОЕ] Добавлен отступ сверху */
 }
 .modal-button {
     flex: 1;
@@ -555,6 +556,16 @@ textarea {
     }
 }
 
+/* [НОВОЕ] Стили для модального окна смены имени */
+.change-name-modal .input-group {
+    margin-bottom: 10px; /* Отступ под полем ввода */
+}
+
+/* [НОВОЕ] Стили для сообщения об ошибке в модальном окне */
+.modal-error {
+    font-size: 0.85em;
+    margin-top: 5px; /* Небольшой отступ сверху */
+}
 
 /* (5.0) Адаптивность (на всякий случай) */
 @media (max-width: 350px) {

@@ -118,14 +118,21 @@ const App = {
         // (5.4) Редактирование
         editListContainer: null,
         editListCloseButton: null,
-        // [НОВОЕ] Модальное окно
+        // Модальное окно предпросмотра
         modalOverlay: null,
         modal: null,
         modalTitle: null,
         modalBody: null,
         modalCancelButton: null,
         modalConfirmButton: null,
-        toast: null, // [НОВОЕ]
+        toast: null,
+        // [НОВОЕ] Модальное окно смены имени
+        changeNameModalOverlay: null,
+        changeNameModal: null,
+        changeNameInput: null,
+        changeNameError: null,
+        changeNameCancelButton: null,
+        changeNameConfirmButton: null,
     },
 
     // (2.0) Состояние
@@ -212,14 +219,22 @@ const App = {
             this.elements.editListContainer = document.getElementById('edit-list-container');
             this.elements.editListCloseButton = document.getElementById('edit-list-close-button');
             
-            // [НОВОЕ] Модальное окно
+            // Модальное окно предпросмотра
             this.elements.modalOverlay = document.getElementById('modal-overlay');
             this.elements.modal = document.getElementById('modal');
             this.elements.modalTitle = document.getElementById('modal-title');
             this.elements.modalBody = document.getElementById('modal-body');
             this.elements.modalCancelButton = document.getElementById('modal-cancel-btn');
             this.elements.modalConfirmButton = document.getElementById('modal-confirm-btn');
-            this.elements.toast = document.getElementById('toast'); // [НОВОЕ]
+            this.elements.toast = document.getElementById('toast');
+            
+            // [НОВОЕ] Модальное окно смены имени
+            this.elements.changeNameModalOverlay = document.getElementById('change-name-modal-overlay');
+            this.elements.changeNameModal = document.getElementById('change-name-modal');
+            this.elements.changeNameInput = document.getElementById('change-name-input');
+            this.elements.changeNameError = document.getElementById('change-name-error');
+            this.elements.changeNameCancelButton = document.getElementById('change-name-cancel-btn');
+            this.elements.changeNameConfirmButton = document.getElementById('change-name-confirm-btn');
             
             console.log('[LOG] DOM elements bound successfully.'); // [ЛОГ] Элементы привязаны
 
@@ -277,13 +292,13 @@ const App = {
         // (5.1) Регистрация
         this.elements.authForm.addEventListener('submit', (e) => this.handleRegistration(e));
 
-        // (5.2) Смена имени
-        this.elements.profileEditNameButton.addEventListener('click', () => this.handleChangeName());
+        // (5.2) Смена имени - [ИЗМЕНЕНО] Открывает модалку
+        this.elements.profileEditNameButton.addEventListener('click', () => this.showChangeNameModal());
 
         // (5.3) Черновик
         this.elements.reportForm.addEventListener('input', (e) => this.handleFormInput(e));
 
-        // [НОВОЕ] Ограничение ввода для Перепробега
+        // Ограничение ввода для Перепробега
         this.elements.overrunInput.addEventListener('input', (e) => this.handleOverrunInput(e));
 
         // (5.3) Логика "Время прицепа"
@@ -294,12 +309,20 @@ const App = {
         this.elements.profileEditReportsButton.addEventListener('click', () => this.showEditList());
         this.elements.editListCloseButton.addEventListener('click', () => this.showScreen('profile'));
 
-        // [НОВОЕ] Обработчики модального окна
+        // Обработчики модального окна предпросмотра
         this.elements.modalCancelButton.addEventListener('click', () => this.hidePreviewModal());
-        // Закрытие по клику на фон
         this.elements.modalOverlay.addEventListener('click', (e) => {
             if (e.target === this.elements.modalOverlay) {
                 this.hidePreviewModal();
+            }
+        });
+
+        // [НОВОЕ] Обработчики модального окна смены имени
+        this.elements.changeNameCancelButton.addEventListener('click', () => this.hideChangeNameModal());
+        this.elements.changeNameConfirmButton.addEventListener('click', () => this.handleChangeName()); // Теперь кнопка вызывает handleChangeName
+        this.elements.changeNameModalOverlay.addEventListener('click', (e) => {
+            if (e.target === this.elements.changeNameModalOverlay) {
+                this.hideChangeNameModal();
             }
         });
     },
@@ -309,7 +332,7 @@ const App = {
     // =============================================
 
     /**
-     * (5.0) Показать экран
+     * (5.0) [ИЗМЕНЕНО] Показать экран
      * @param {'loader' | 'main' | 'profile' | 'editList' | 'auth'} screenName
      */
     showScreen(screenName) {
@@ -323,7 +346,8 @@ const App = {
         this.elements.profileScreen.classList.add('hidden');
         this.elements.editListScreen.classList.add('hidden');
         this.elements.authScreen.classList.add('hidden');
-        this.elements.modalOverlay.classList.add('hidden'); // [НОВОЕ] Скрываем модалку
+        this.elements.modalOverlay.classList.add('hidden');
+        this.elements.changeNameModalOverlay.classList.add('hidden'); // [НОВОЕ]
 
         this.tg.BackButton.hide();
         this.tg.MainButton.hide();
@@ -394,7 +418,7 @@ const App = {
         this.elements.authError.classList.remove('hidden');
     },
 
-    // [НОВОЕ] Показ тост-уведомления
+    // Показ тост-уведомления
     showToast(message, type = 'success') {
         console.log(`[TOAST] ${type}: ${message}`);
         this.elements.toast.innerText = message;
@@ -408,7 +432,7 @@ const App = {
         }, 3000);
     },
 
-    // [НОВОЕ] Снятие выделения ошибок валидации
+    // Снятие выделения ошибок валидации
     clearValidationErrors() {
         const fields = [
             this.elements.dateInput,
@@ -419,7 +443,8 @@ const App = {
             this.elements.shiftEndInput,
             this.elements.trailerStartInput,
             this.elements.trailerEndInput,
-            this.elements.overrunInput // Добавлено поле перепробега
+            this.elements.overrunInput,
+            this.elements.changeNameInput // [НОВОЕ] Добавлено поле смены имени
         ];
         fields.forEach(el => {
             if (el) { // Проверка, что элемент существует
@@ -427,45 +452,62 @@ const App = {
                 el.classList.remove('shake-animation');
             }
         });
+        // [НОВОЕ] Скрываем ошибку в модалке смены имени
+        this.elements.changeNameError.classList.add('hidden');
     },
 
-    // [НОВОЕ] Показ модального окна
+    // Показ модального окна предпросмотра
     showPreviewModal(title, message, confirmText, onConfirm) {
         console.log('[LOG] showPreviewModal called.');
         this.elements.modalTitle.innerText = title;
-        this.elements.modalBody.innerText = message; // `white-space: pre-wrap` в CSS обработает \n
+        this.elements.modalBody.innerText = message; 
         
-        // [НОВОЕ] Динамическое назначение обработчика, чтобы избежать дублирования
-        // 1. Клонируем кнопку
+        // Динамическое назначение обработчика
         const newConfirmBtn = this.elements.modalConfirmButton.cloneNode(true);
         // @ts-ignore
         newConfirmBtn.innerText = confirmText;
         
-        // 2. Добавляем новый обработчик
         newConfirmBtn.addEventListener('click', () => {
             console.log('[LOG] Modal confirm clicked.');
             this.tg.HapticFeedback.impactOccurred('medium');
-            onConfirm(); // Выполняем действие
-            this.hidePreviewModal(); // Скрываем окно
+            onConfirm(); 
+            this.hidePreviewModal(); 
         });
 
-        // 3. Заменяем старую кнопку новой
         this.elements.modalConfirmButton.parentNode.replaceChild(newConfirmBtn, this.elements.modalConfirmButton);
-        // 4. Переназначаем элемент в App.elements
         this.elements.modalConfirmButton = newConfirmBtn;
 
-        // Показываем окно
         this.elements.modalOverlay.classList.remove('hidden');
-        this.tg.MainButton.hide(); // Прячем главную кнопку, пока открыта модалка
+        this.tg.MainButton.hide(); 
     },
 
-    // [НОВОЕ] Скрытие модального окна
+    // Скрытие модального окна предпросмотра
     hidePreviewModal() {
         console.log('[LOG] hidePreviewModal called.');
         this.elements.modalOverlay.classList.add('hidden');
-        // Показываем кнопку "Предпросмотр" только если мы на главном экране
         if (!this.elements.mainScreen.classList.contains('hidden')) {
              this.tg.MainButton.show();
+        }
+    },
+
+    // [НОВОЕ] Показ модального окна смены имени
+    showChangeNameModal() {
+        console.log('[LOG] showChangeNameModal called.');
+        this.tg.HapticFeedback.impactOccurred('light');
+        // @ts-ignore
+        this.elements.changeNameInput.value = this.state.user.driver_name; // Предзаполняем
+        this.clearValidationErrors(); // Очищаем старые ошибки
+        this.elements.changeNameModalOverlay.classList.remove('hidden');
+        this.tg.BackButton.hide(); // Прячем кнопку TWA Назад
+    },
+
+    // [НОВОЕ] Скрытие модального окна смены имени
+    hideChangeNameModal() {
+        console.log('[LOG] hideChangeNameModal called.');
+        this.elements.changeNameModalOverlay.classList.add('hidden');
+        // Показываем кнопку TWA Назад, если мы на экране профиля
+        if (!this.elements.profileScreen.classList.contains('hidden')) {
+             this.tg.BackButton.show();
         }
     },
 
@@ -580,72 +622,85 @@ const App = {
     // =============================================
 
     /**
-     * (5.2) POST /api/changeName - Смена ФИО
+     * (5.2) [ИЗМЕНЕНО] POST /api/changeName - Смена ФИО (вызывается из модалки)
      */
-    handleChangeName() {
+    async handleChangeName() {
         this.tg.HapticFeedback.impactOccurred('light');
-        console.log('[LOG] handleChangeName() called.'); // [ЛОГ] Смена имени
+        console.log('[LOG] handleChangeName() called from modal.');
+
+        // @ts-ignore
+        const newName = this.elements.changeNameInput.value.trim();
+        console.log('[LOG] New name entered:', newName);
+
+        this.clearValidationErrors(); // Очищаем предыдущие ошибки
+
+        if (!newName || newName === this.state.user.driver_name) {
+            console.log('[LOG] Name change cancelled or name not changed.');
+            this.hideChangeNameModal(); // Просто закрываем окно
+            return;
+        }
+
+        const sanitizedName = newName; // Уже trim()
+        console.log('[LOG] Validating new name:', sanitizedName); 
         
-        // [ИЗМЕНЕНО] Используем tg.showPopup для запроса смены имени, т.к. он простой
-        this.tg.showPopup({
-            title: 'Сменить ФИО',
-            message: 'Введите новое ФИО. (Проверки безопасности те же, что при регистрации).',
-            // @ts-ignore
-            is_cancelable: true,
-            buttons: [
-                { id: 'cancel', type: 'destructive', text: 'Отмена' },
-                { id: 'change', type: 'default', text: 'Сменить' },
-            ],
-        }, async (buttonId) => {
-            console.log(`[LOG] Change name popup closed with button: ${buttonId}`); // [ЛОГ] Закрытие popup
-            
-            // [ИЗМЕНЕНО] Используем простой prompt(), т.к. showPopup не возвращает текст
-            if (buttonId === 'change') {
-                const newName = prompt('Введите новое ФИО:', this.state.user.driver_name);
-                console.log('[LOG] New name entered:', newName); // [ЛОГ] Ввод нового имени
+        let validationError = null;
+        if (sanitizedName.length < 5) {
+             validationError = "Некорректное ФИО. (Мин. 5 симв.).";
+        } else if (['=', '+', '-', '@'].includes(sanitizedName[0])) {
+             validationError = "Некорректное ФИО. (Не начинается с =,+, -,@).";
+        }
+        
+        if (validationError) {
+             console.warn('[VALIDATION] Name change failed:', validationError);
+             this.tg.HapticFeedback.notificationOccurred('error');
+             // [НОВОЕ] Показываем ошибку в модалке
+             // @ts-ignore
+             this.elements.changeNameError.innerText = validationError;
+             this.elements.changeNameError.classList.remove('hidden');
+             this.elements.changeNameInput.classList.add('input-error');
+             return; // НЕ закрываем модалку
+        }
+        
+        console.log('[LOG] New name validation passed.');
 
-                if (!newName || newName.trim() === this.state.user.driver_name) {
-                    console.log('[LOG] Name change cancelled or name not changed.'); // [ЛОГ] Отмена смены
-                    return;
+        // Валидация пройдена, закрываем модалку и показываем лоадер
+        this.hideChangeNameModal();
+        this.showScreen('loader');
+        
+        try {
+            console.log('[LOG] Sending POST /changeName request...');
+            const response = await this.api.post('/changeName', {
+                tgId: this.state.user.tg_id,
+                newName: sanitizedName
+            });
+             console.log('[LOG] Change name API response:', response);
+
+            if (response.error) {
+                // Если ошибка "Имя занято", показываем тост
+                if (response.error === 'Это ФИО уже занято') {
+                    this.showToast(response.error, 'error');
+                } else {
+                    // Другие ошибки сервера показываем через showErrorPopup
+                    this.showErrorPopup(response.error);
                 }
-
-                const sanitizedName = newName.trim();
-                console.log('[LOG] Validating new name:', sanitizedName); // [ЛОГ] Валидация нового имени
-                if (sanitizedName.length < 5 || ['=', '+', '-', '@'].includes(sanitizedName[0])) {
-                    // [ИЗМЕНЕНО] Используем тост вместо алерта
-                    this.showToast("Некорректное ФИО. (Мин. 5 симв., не начинается с =,+, -,@).", 'error');
-                    return;
-                }
-                console.log('[LOG] New name validation passed.'); // [ЛОГ] Валидация нового имени пройдена
-
-                this.showScreen('loader');
-                try {
-                    console.log('[LOG] Sending POST /changeName request...'); // [ЛОГ] Отправка запроса смены имени
-                    const response = await this.api.post('/changeName', {
-                        tgId: this.state.user.tg_id,
-                        newName: sanitizedName
-                    });
-                     console.log('[LOG] Change name API response:', response); // [ЛОГ] Ответ на смену имени
-
-                    if (response.error) {
-                        this.showErrorPopup(response.error);
-                    } else {
-                        console.log('[LOG] Name change successful.'); // [ЛОГ] Имя сменено успешно
-                        this.state.user.driver_name = sanitizedName;
-                        this.elements.profileName.innerText = sanitizedName;
-                        // [ИЗМЕНЕНО] Используем тост вместо алерта
-                        this.showToast('ФИО изменено.');
-                    }
-                } catch (e) {
-                    console.error('[ERROR] Network or API client error during name change:', e); // [ЛОГ] Ошибка смены имени
-                    this.showErrorPopup("Ошибка сети при смене имени.");
-                } finally {
-                    console.log('[LOG] Returning to profile screen after name change attempt.'); // [ЛОГ] Возврат в профиль
-                    this.showScreen('profile');
-                }
+            } else {
+                console.log('[LOG] Name change successful.');
+                this.state.user.driver_name = sanitizedName;
+                this.elements.profileName.innerText = sanitizedName;
+                this.showToast('ФИО изменено.'); // Тост об успехе
             }
-        });
+        } catch (e) {
+            console.error('[ERROR] Network or API client error during name change:', e);
+            this.showErrorPopup("Ошибка сети при смене имени."); // Критическая ошибка
+        } finally {
+            console.log('[LOG] Returning to profile screen after name change attempt.');
+            // Показываем экран профиля в любом случае (кроме ошибки сети, где showErrorPopup сама это сделает)
+            if (!this.elements.profileScreen.classList.contains('hidden')) { // Доп. проверка, если мы уже там
+                this.showScreen('profile');
+            }
+        }
     },
+
 
     // =============================================
     // (5.3) ФОРМА (Загрузка, Черновик, Отправка)
@@ -704,7 +759,7 @@ const App = {
     },
 
     /**
-     * [НОВОЕ] Обработчик ввода для поля "Перепробег"
+     * Обработчик ввода для поля "Перепробег"
      */
     handleOverrunInput(e) {
         // @ts-ignore
@@ -834,7 +889,6 @@ const App = {
      * (5.3) Логика отображения времени прицепа
      */
     updateTrailerTimeVisibility() {
-        // console.log('[LOG] updateTrailerTimeVisibility() called.'); // [ЛОГ] Слишком часто
         // @ts-ignore
         const trailerSelected = this.elements.trailerSelect.value;
         if (trailerSelected) {
@@ -868,7 +922,7 @@ const App = {
     },
 
     /**
-     * (5.3) [ИЗМЕНЕНО] Валидация формы (возвращает массив элементов)
+     * (5.3) Валидация формы (возвращает массив элементов)
      */
     validateForm() {
         console.log('[LOG] validateForm() called.'); // [ЛОГ] Валидация формы
@@ -880,7 +934,6 @@ const App = {
         if (!data.vehicle) { console.warn('[VALIDATION] Vehicle missing.'); errors.push(this.elements.vehicleSelect); }
         if (!data.address) { console.warn('[VALIDATION] Address missing.'); errors.push(this.elements.addressInput); }
         
-        // [ИЗМЕНЕНО] Проверяем оба поля времени
         if (!data.shift_start) { console.warn('[VALIDATION] Shift start missing.'); errors.push(this.elements.shiftStartInput); }
         if (!data.shift_end) { console.warn('[VALIDATION] Shift end missing.'); errors.push(this.elements.shiftEndInput); }
         
@@ -889,15 +942,14 @@ const App = {
         
         if (data.overrun) {
             const overrunValue = parseInt(data.overrun, 10);
-            // Проверяем только на NaN и отрицательные (на всякий случай)
             if (isNaN(overrunValue) || overrunValue < 0) { 
                  console.warn('[VALIDATION] Overrun invalid.'); 
-                 errors.push(this.elements.overrunInput); // Добавляем в ошибки, если введено некорректное (непустое) значение
+                 errors.push(this.elements.overrunInput); 
             }
         }
 
         if (errors.length > 0) {
-            return errors; // Возвращаем массив элементов
+            return errors; 
         }
 
         console.log('[LOG] Form validation passed.');
@@ -927,45 +979,40 @@ const App = {
     },
 
     /**
-     * (5.0) [ИЗМЕНЕНО] Главная кнопка (Предпросмотр / Редактировать)
+     * (5.0) Главная кнопка (Предпросмотр / Редактировать)
      */
     handleMainButtonClick() {
         console.log('[LOG] handleMainButtonClick() called.'); // [ЛОГ] Нажатие главной кнопки
         this.tg.HapticFeedback.impactOccurred('medium');
         
-        this.clearValidationErrors(); // [НОВОЕ] Очищаем старые ошибки
+        this.clearValidationErrors(); 
         
         const validationErrors = this.validateForm();
         
         if (validationErrors) {
             console.warn('[VALIDATION] Failed:', validationErrors);
-            this.tg.HapticFeedback.notificationOccurred('error'); // Вибрация
+            this.tg.HapticFeedback.notificationOccurred('error'); 
             
-            // [НОВОЕ] Применяем стили ошибок
             validationErrors.forEach((el, index) => {
                 if (el) {
                     el.classList.add('input-error');
                     el.classList.add('shake-animation');
-                    // Снимаем класс анимации, чтобы она могла повториться
                     setTimeout(() => {
                         el.classList.remove('shake-animation');
-                    }, 500); // Длительность анимации + запас
+                    }, 500); 
                 }
-                
-                // Фокус на первом ошибочном поле
                 if (index === 0 && typeof el.focus === 'function') {
                     el.focus();
                 }
             });
             
-            return; // Прерываем выполнение
+            return; 
         }
 
-        console.log('[LOG] Form validated, calculating preview data...'); // [ЛОГ] Расчет предпросмотра
+        console.log('[LOG] Form validated, calculating preview data...'); 
         
         const data = this.state.currentReport;
         
-        // 1. Расчеты
         const shiftOvertime = this.calculateOvertime(data.shift_start, data.shift_end);
         
         let trailerStart = data.trailer_start;
@@ -980,19 +1027,14 @@ const App = {
              trailerOvertime = this.calculateOvertime(trailerStart, trailerEnd);
         }
         
-        // 2. Вспомогательные функции
         const fHours = (h) => h > 0 ? `${h.toFixed(1)} ч.` : '0 ч.';
         
-        // 3. Данные водителя
         const user = this.state.user;
         const tgUser = this.tg.initDataUnsafe.user;
         const tgUserLink = tgUser.username ? `@${tgUser.username}` : `(ID: ${user.tg_id})`;
         const driverString = `${user.driver_name} ${tgUserLink}`;
 
-        // 4. Сборка сообщения (БЕЗ усечения)
-        let previewMessage = [
-            // Заголовок для модального окна будет передан отдельно
-        ];
+        let previewMessage = [];
         
         if (data.date) previewMessage.push(`🗓 ${data.date}`);
         if (driverString) previewMessage.push(`👤 Водитель: ${driverString}`);
@@ -1020,20 +1062,19 @@ const App = {
         const finalMessage = previewMessage.join('\n');
         console.log('[LOG] Preview message generated. Length: ' + finalMessage.length);
 
-        // 5. [ИЗМЕНЕНО] Показ модального окна
         if (this.state.editingReportId) {
             this.showPreviewModal(
                 'Подтвердить изменения?', 
                 finalMessage, 
                 'Отредактировать', 
-                () => this.promptForEditReason() // Передаем функцию
+                () => this.promptForEditReason() 
             );
         } else {
             this.showPreviewModal(
                 'Отправить отчет?',
                 finalMessage,
                 'Отправить',
-                () => this.submitReport() // Передаем функцию
+                () => this.submitReport() 
             );
         }
     },
@@ -1067,12 +1108,11 @@ const App = {
                 this.showScreen('main');
             } else {
                 console.log('[LOG] Report submitted successfully.'); // [ЛОГ] Отчет отправлен
-                // [ИЗМЕНЕНО] Показываем тост и закрываем приложение
                 this.showToast('Отчет успешно отправлен!');
                 this.resetForm();
                 setTimeout(() => {
                     this.tg.close();
-                }, 1500); // Даем время тосту показаться
+                }, 1500); 
             }
         } catch (e) {
             console.error('[ERROR] Network or API client error during report submission:', e); // [ЛОГ] Ошибка отправки
@@ -1183,7 +1223,6 @@ const App = {
             this.submitEditReport(reason.trim());
         } else if (reason !== null) {
             console.warn('[WARN] Edit reason is too short or empty.'); // [ЛОГ] Причина короткая
-            // [ИЗМЕНЕНО] Используем тост
             this.showToast("Причина обязательна (мин. 4 символа).", 'error');
         } else {
              console.log('[LOG] Edit reason prompt cancelled.'); // [ЛОГ] Отмена ввода причины
@@ -1220,7 +1259,6 @@ const App = {
                 this.showScreen('main');
             } else {
                  console.log('[LOG] Report edited successfully.'); // [ЛОГ] Отчет изменен успешно
-                 // [ИЗМЕНЕНО] Используем тост
                 this.showToast('Отчет успешно отредактирован!');
                 this.resetForm();
             }
@@ -1331,3 +1369,4 @@ document.addEventListener('DOMContentLoaded', () => {
           document.body.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--error-color);">Критическая ошибка при запуске приложения. Свяжитесь с администратором.</div>';
      }
 });
+
