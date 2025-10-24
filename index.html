@@ -6,14 +6,11 @@
     <title>Отчеты о смене</title>
     <!-- (2.0) Подключаем Telegram Web App API -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
+
     <!-- (2.0) Подключаем стили -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-    <!-- [НОВОЕ] Всплывающее уведомление (тост) -->
-    <div id="toast"></div>
 
     <!-- (2.0) (5.0) Загрузчик -->
     <div id="loader" class="screen">
@@ -32,7 +29,6 @@
             <form id="auth-form">
                 <div class="input-group">
                     <label for="auth-name">Ваше ФИО</label>
-                    <!-- [ИЗМЕНЕНО] maxlength="50" -->
                     <input type="text" id="auth-name" name="auth-name" required minlength="5" placeholder="Иванов Иван Иванович" maxlength="50">
                 </div>
                 <div id="auth-error" class="auth-error hidden"></div>
@@ -81,6 +77,8 @@
     <!-- (5.3) Главный экран (Форма) -->
     <div id="main-screen" class="screen hidden">
         <div class="screen-header">
+            <!-- [НОВОЕ] Индикатор админки -->
+            <div id="admin-indicator" class="hidden">АДМИНКА</div>
             <h1 id="header-title" class="screen-title">Отчёт о смене</h1>
             <button id="profile-button" class="profile-button">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -99,7 +97,6 @@
             <!-- (5.3) Проект -->
             <div class="input-group">
                 <label for="project">Проект</label>
-                <!-- [ИЗМЕНЕНО] maxlength="25" -->
                 <input type="text" id="project" name="project" list="recent-projects" placeholder="Название проекта" required maxlength="25">
                 <datalist id="recent-projects"></datalist>
             </div>
@@ -116,11 +113,10 @@
             <!-- (5.3) Место / Адрес -->
             <div class="input-group">
                 <label for="address">Место / Адрес</label>
-                <!-- [ИЗМЕНЕНО] maxlength="50" -->
                 <textarea id="address" name="address" rows="2" placeholder="Где вы работали" required maxlength="50"></textarea>
             </div>
 
-            <!-- (5.3) Смена (Начало / Конец) [ИСПРАВЛЕНО] -->
+            <!-- (5.3) Смена (Начало / Конец) -->
             <div class="input-group time-group">
                 <div class="time-input-container">
                     <label for="shift_start">Смена (Начало)</label>
@@ -141,21 +137,19 @@
                 </select>
             </div>
 
-            <!-- (5.3) Время прицепа (Переключатель) [ИСПРАВЛЕНО] -->
+            <!-- (5.3) Время прицепа (Переключатель) -->
             <div id="trailer-time-toggle-label" class="toggle-group hidden">
                 <input type="checkbox" id="trailer_diff_time" name="trailer_diff_time">
                 <label for="trailer_diff_time">Время прицепа отличается от времени смены</label>
             </div>
 
-            <!-- (5.3) Время прицепа (Поля) [ИЗМЕНЕНО] -->
+            <!-- (5.3) Время прицепа (Поля) -->
             <div id="trailer-time-fields" class="input-group time-group hidden">
                 <div class="time-input-container">
-                    <!-- [ИЗМЕНЕНО] -->
                     <label for="trailer_start">Прицеп (Начало)</label>
                     <input type="time" id="trailer_start" name="trailer_start">
                 </div>
                 <div class="time-input-container">
-                    <!-- [ИЗМЕНЕНО] -->
                     <label for="trailer_end">Прицеп (Конец)</label>
                     <input type="time" id="trailer_end" name="trailer_end">
                 </div>
@@ -164,14 +158,12 @@
             <!-- (5.3) Перепробег -->
             <div class="input-group">
                 <label for="overrun">Перепробег (км)</label>
-                <!-- [ИЗМЕНЕНО] max="9999" -->
                 <input type="number" id="overrun" name="overrun" min="0" placeholder="0" max="9999">
             </div>
 
             <!-- (5.3) Комментарий -->
             <div class="input-group">
                 <label for="comment">Комментарий</label>
-                <!-- [ИЗМЕНЕНО] maxlength="100" -->
                 <textarea id="comment" name="comment" rows="3" placeholder="Любые детали, проблемы, заметки..." maxlength="100"></textarea>
             </div>
 
@@ -181,30 +173,33 @@
     <!-- Модальное окно предпросмотра -->
     <div id="modal-overlay" class="modal-overlay hidden">
         <div id="modal" class="modal">
-            <h2 id="modal-title" class="modal-title">Заголовок</h2>
-            <pre id="modal-body" class="modal-body">Тело...</pre>
-            <div class="modal-actions">
+            <h2 id="modal-title">Предпросмотр</h2>
+            <p id="modal-body">Текст отчета...</p>
+            <div class="modal-buttons">
                 <button id="modal-cancel-btn" class="modal-button modal-button-cancel">Отмена</button>
-                <button id="modal-confirm-btn" class="modal-button modal-button-confirm">Ок</button>
+                <button id="modal-confirm-btn" class="modal-button modal-button-confirm">Отправить</button>
             </div>
         </div>
     </div>
 
-    <!-- [НОВОЕ] Модальное окно смены имени -->
+     <!-- Модальное окно смены имени -->
     <div id="change-name-modal-overlay" class="modal-overlay hidden">
-        <div id="change-name-modal" class="modal change-name-modal"> <!-- Добавлен класс change-name-modal для стилизации -->
-            <h2 class="modal-title">Сменить ФИО</h2>
+        <div id="change-name-modal" class="modal">
+            <h2 id="change-name-modal-title">Сменить ФИО</h2>
             <div class="input-group">
                 <label for="change-name-input">Новое ФИО</label>
                 <input type="text" id="change-name-input" name="change-name-input" required minlength="5" placeholder="Иванов Иван Иванович" maxlength="50">
-                <div id="change-name-error" class="modal-error hidden"></div> <!-- Место для ошибки -->
+                <div id="change-name-error" class="modal-error hidden"></div>
             </div>
-            <div class="modal-actions">
+            <div class="modal-buttons">
                 <button id="change-name-cancel-btn" class="modal-button modal-button-cancel">Отмена</button>
                 <button id="change-name-confirm-btn" class="modal-button modal-button-confirm">Сменить</button>
             </div>
         </div>
     </div>
+
+    <!-- Тост-уведомление -->
+    <div id="toast">Сообщение</div>
 
 
     <!-- (2.0) Подключаем скрипт приложения -->

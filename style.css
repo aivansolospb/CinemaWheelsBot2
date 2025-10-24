@@ -36,14 +36,19 @@
         color: var(--tg-theme-text-color, #000000);
         border: 1px solid var(--border-color, #c6c6c8);
     }
-    button, .auth-button, .menu-item, .report-item-btn {
+    button, .auth-button, .menu-item, .report-item-btn, .modal-button-confirm {
         background-color: var(--tg-theme-button-color, #007aff);
         color: var(--tg-theme-button-text-color, #ffffff);
+    }
+    .modal-button-cancel {
+        background-color: var(--tg-theme-secondary-bg-color, #f2f2f7);
+        color: var(--tg-theme-button-color, #007aff);
+        border: 1px solid var(--tg-theme-secondary-bg-color, #f2f2f7);
     }
     .report-item, .profile-menu {
         border-top: 1px solid var(--border-color, #c6c6c8);
     }
-    .auth-error, .modal-error { /* [ИЗМЕНЕНО] Добавлен .modal-error */
+    .auth-error, .modal-error, #admin-indicator {
         color: var(--error-color, #ff3b30);
     }
     .auth-subtitle, .auth-icon, .profile-id, .report-item-date, .report-item-project {
@@ -52,19 +57,20 @@
     .screen-header {
          border-bottom: 1px solid var(--border-color, #c6c6c8);
     }
-    /* [НОВОЕ] Стиль ошибки для светлой темы */
-    .input-error {
-        border-color: var(--error-color, #ff3b30) !important;
-        box-shadow: 0 0 0 1px var(--error-color, #ff3b30);
+    .modal {
+        background-color: var(--tg-theme-bg-color, #ffffff);
+        border: 1px solid var(--border-color, #c6c6c8);
     }
-    /* [НОВОЕ] Стили тоста */
+    input.input-error, select.input-error, textarea.input-error {
+        border-color: var(--error-color, #ff3b30) !important;
+    }
     .toast-success {
         background-color: var(--success-color, #34c759);
-        color: white;
+        color: #fff;
     }
     .toast-error {
         background-color: var(--error-color, #ff3b30);
-        color: white;
+        color: #fff;
     }
 }
 
@@ -78,14 +84,19 @@
         color: var(--tg-theme-text-color, var(--tg-dark-theme-text-color));
         border: 1px solid var(--dark-border-color, #38383a);
     }
-     button, .auth-button, .menu-item, .report-item-btn {
+     button, .auth-button, .menu-item, .report-item-btn, .modal-button-confirm {
         background-color: var(--tg-theme-button-color, var(--tg-dark-theme-button-color));
         color: var(--tg-theme-button-text-color, var(--tg-dark-theme-button-text-color));
+    }
+    .modal-button-cancel {
+        background-color: var(--tg-theme-secondary-bg-color, var(--tg-dark-theme-secondary-bg-color));
+        color: var(--tg-theme-button-color, var(--tg-dark-theme-button-color));
+        border: 1px solid var(--tg-theme-secondary-bg-color, var(--tg-dark-theme-secondary-bg-color));
     }
      .report-item, .profile-menu {
         border-top: 1px solid var(--dark-border-color, #38383a);
     }
-     .auth-error, .modal-error { /* [ИЗМЕНЕНО] Добавлен .modal-error */
+     .auth-error, .modal-error, #admin-indicator {
         color: var(--error-color, #ff3b30); /* Оставляем ярким */
     }
     .auth-subtitle, .auth-icon, .profile-id, .report-item-date, .report-item-project {
@@ -94,19 +105,20 @@
     .screen-header {
          border-bottom: 1px solid var(--dark-border-color, #38383a);
     }
-    /* [НОВОЕ] Стиль ошибки для темной темы */
-    .input-error {
-        border-color: var(--error-color, #ff3b30) !important;
-        box-shadow: 0 0 0 1px var(--error-color, #ff3b30);
+    .modal {
+        background-color: var(--tg-theme-bg-color, var(--tg-dark-theme-bg-color));
+        border: 1px solid var(--dark-border-color, #38383a);
     }
-    /* [НОВОЕ] Стили тоста */
+    input.input-error, select.input-error, textarea.input-error {
+        border-color: var(--error-color, #ff3b30) !important;
+    }
     .toast-success {
         background-color: var(--success-color, #34c759);
-        color: #000;
+        color: #fff; /* Оставляем белым */
     }
     .toast-error {
         background-color: var(--error-color, #ff3b30);
-        color: #fff;
+        color: #fff; /* Оставляем белым */
     }
 }
 
@@ -117,7 +129,7 @@ body {
     padding: 15px;
     box-sizing: border-box;
     /* (2.0) Используем переменную высоты TWA */
-    min-height: var(--tg-viewport-height, 100vh); 
+    min-height: var(--tg-viewport-height, 100vh);
     overflow-x: hidden;
 }
 
@@ -157,40 +169,6 @@ body {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
-}
-
-/* [НОВОЕ] Анимация вибрации */
-@keyframes shake {
-    0% { transform: translateX(0); }
-    15% { transform: translateX(-5px); }
-    30% { transform: translateX(5px); }
-    45% { transform: translateX(-5px); }
-    60% { transform: translateX(5px); }
-    75% { transform: translateX(-5px); }
-    100% { transform: translateX(0); }
-}
-
-.shake-animation {
-    animation: shake 0.3s ease-in-out;
-}
-
-/* [НОВОЕ] Стили для тост-уведомления */
-#toast {
-    position: fixed;
-    top: -100px; /* Изначально скрыт вверху */
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-size: 0.9em;
-    font-weight: 500;
-    z-index: 10001; /* Выше чем модальное окно */
-    transition: top 0.4s ease-in-out;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}
-
-#toast.show {
-    top: 20px; /* Появление */
 }
 
 
@@ -244,17 +222,33 @@ body {
     padding-bottom: 70px; /* Место для MainButton */
 }
 
+/* [ИЗМЕНЕНО] Стили хедера */
 .screen-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start; /* Выравнивание по верху для админки */
     padding-bottom: 15px;
     margin-bottom: 20px;
+    position: relative; /* Для позиционирования кнопки профиля */
+}
+/* [НОВОЕ] Стили индикатора админки */
+#admin-indicator {
+    position: absolute; /* Позиционируем относительно хедера */
+    top: -5px; /* Немного выше заголовка */
+    left: 0;
+    font-size: 0.8em;
+    font-weight: bold;
+    padding: 2px 5px;
+    border-radius: 4px;
+    background-color: var(--tg-theme-secondary-bg-color); /* Фон под текстом */
 }
 .screen-title {
     font-size: 1.5em;
     font-weight: 600;
     margin: 0;
+    margin-top: 1.2em; /* Отодвигаем заголовок вниз, если есть админка */
+    flex-grow: 1; /* Занимает доступное пространство */
+    text-align: left; /* Выравнивание текста */
 }
 .profile-button, .close-button {
     background: none;
@@ -262,6 +256,10 @@ body {
     padding: 5px;
     cursor: pointer;
     color: var(--tg-theme-button-color, #007aff);
+    flex-shrink: 0; /* Не сжиматься */
+}
+.profile-button {
+     margin-top: 1.1em; /* Выравниваем кнопку по заголовку */
 }
 .profile-button svg {
     width: 28px;
@@ -301,8 +299,6 @@ textarea {
     border-radius: 8px;
     font-size: 1em;
     box-sizing: border-box; /* Учитываем padding и border в ширине */
-    /* [НОВОЕ] Плавный переход для рамки */
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 input::placeholder, textarea::placeholder {
     color: var(--tg-theme-hint-color, #999999);
@@ -311,24 +307,46 @@ textarea {
     resize: vertical; /* Разрешаем менять высоту */
 }
 
-/* (5.3) Стили для времени [ИСПРАВЛЕНО] */
+/* Стили для ошибки валидации */
+.input-error {
+    border: 1px solid var(--error-color, #ff3b30) !important; /* Важно, чтобы перебить другие стили */
+    box-shadow: 0 0 5px rgba(255, 59, 48, 0.5);
+}
+
+/* Анимация вибрации */
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-3px, 0, 0); }
+  40%, 60% { transform: translate3d(3px, 0, 0); }
+}
+.shake-animation {
+  animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+
+/* (5.3) Стили для времени */
 .time-group {
     display: flex;
-    flex-direction: row; /* [ИСПРАВЛЕНО] */
+    flex-direction: row; /* <-- ИСПРАВЛЕНО */
     gap: 15px;
 }
-.time-input-container { /* [ИСПРАВЛЕНО] */
+.time-input-container { /* <-- ИСПРАВЛЕНО ИМЯ КЛАССА */
     flex: 1; /* Растягиваем поля времени */
 }
 
 /* (5.3) Стили для "Время прицепа отличается" */
-.toggle-label {
+.toggle-group { /* Используем этот класс вместо toggle-label */
     display: flex;
     align-items: center;
     gap: 8px;
     cursor: pointer;
     font-size: 0.95em;
     margin-top: -10px; /* Ближе к селекту прицепа */
+}
+.toggle-group label { /* Стиль для текста рядом с чекбоксом */
+    cursor: pointer;
+    margin: 0;
 }
 .toggle-checkbox {
     appearance: none;
@@ -340,6 +358,7 @@ textarea {
     position: relative;
     cursor: pointer;
     transition: background-color 0.2s ease;
+    flex-shrink: 0; /* Не сжиматься */
 }
 .toggle-checkbox::before {
     content: '';
@@ -483,54 +502,51 @@ textarea {
 }
 
 
-/* [НОВОЕ] Стили модального окна */
+/* Стили модального окна */
 .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    height: var(--tg-viewport-height, 100vh);
-    background-color: rgba(0, 0, 0, 0.5);
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Полупрозрачный фон */
     display: flex;
-    align-items: center;
     justify-content: center;
-    z-index: 10000;
+    align-items: center;
+    z-index: 1000;
+    padding: 15px;
+    box-sizing: border-box;
 }
 .modal {
-    background-color: var(--tg-theme-bg-color, #ffffff);
     padding: 20px;
     border-radius: 12px;
-    width: 90%;
-    max-width: 400px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 450px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
-@media (prefers-color-scheme: dark) {
-     .modal {
-        background-color: var(--tg-dark-theme-secondary-bg-color, #2c2c2e);
-     }
-}
-.modal-title {
-    font-size: 1.2em;
+.modal h2 {
+    margin: 0 0 10px 0;
+    font-size: 1.3em;
     font-weight: 600;
-    margin-top: 0;
-    margin-bottom: 15px;
-    color: var(--tg-theme-text-color, #000000);
+    text-align: center;
 }
-.modal-body {
-    font-size: 0.9em;
-    white-space: pre-wrap; /* Сохраняет \n */
-    max-height: 40vh;
-    overflow-y: auto;
-    margin-bottom: 20px;
-    color: var(--tg-theme-text-color, #000000);
-    /* Стилизация скроллбара (опционально, для красоты) */
-    scrollbar-width: thin;
-    scrollbar-color: var(--tg-theme-hint-color) var(--tg-theme-secondary-bg-color);
+.modal p {
+    margin: 0;
+    white-space: pre-wrap; /* Сохраняем переносы строк */
+    word-wrap: break-word; /* Перенос длинных слов */
+    font-size: 0.95em;
+    line-height: 1.4;
+    max-height: 60vh; /* Ограничиваем высоту текста */
+    overflow-y: auto; /* Добавляем скролл, если текст не влезает */
 }
-.modal-actions {
+.modal-buttons {
     display: flex;
     gap: 10px;
-    margin-top: 20px; /* [НОВОЕ] Добавлен отступ сверху */
+    margin-top: 15px;
 }
 .modal-button {
     flex: 1;
@@ -541,39 +557,41 @@ textarea {
     font-weight: 500;
     cursor: pointer;
 }
-.modal-button-cancel {
-    background-color: var(--tg-theme-secondary-bg-color, #f2f2f7);
-    color: var(--tg-theme-text-color, #000000);
-}
-.modal-button-confirm {
-    background-color: var(--tg-theme-button-color, #007aff);
-    color: var(--tg-theme-button-text-color, #ffffff);
-}
-@media (prefers-color-scheme: dark) {
-    .modal-button-cancel {
-        background-color: var(--tg-dark-theme-hint-color, #8e8e93);
-        color: var(--tg-dark-theme-text-color, #ffffff);
-    }
-}
-
-/* [НОВОЕ] Стили для модального окна смены имени */
-.change-name-modal .input-group {
-    margin-bottom: 10px; /* Отступ под полем ввода */
-}
-
-/* [НОВОЕ] Стили для сообщения об ошибке в модальном окне */
 .modal-error {
-    font-size: 0.85em;
-    margin-top: 5px; /* Небольшой отступ сверху */
+     font-size: 0.9em;
+     margin-top: -5px; /* Ближе к инпуту */
 }
 
-/* (5.0) Адаптивность (на всякий случай) */
+
+/* Стили тост-уведомления */
+#toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 0.9em;
+    z-index: 2000;
+    opacity: 0;
+    transition: opacity 0.3s ease, bottom 0.3s ease;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    text-align: center;
+    max-width: 90%;
+}
+#toast.show {
+    opacity: 1;
+    bottom: 80px; /* Позиция над MainButton */
+}
+
+
+/* (5.0) Адаптивность */
 @media (max-width: 350px) {
     body {
         padding: 10px;
     }
     .time-group {
-        flex-direction: column;
+        /* Оставляем в строку даже на маленьких */
     }
     .screen-title {
         font-size: 1.3em;
@@ -581,4 +599,11 @@ textarea {
     .auth-title {
         font-size: 1.6em;
     }
+    .modal {
+        padding: 15px;
+    }
+    .modal h2 {
+         font-size: 1.2em;
+    }
 }
+

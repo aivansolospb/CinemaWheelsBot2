@@ -93,6 +93,7 @@ const App = {
         reportForm: null,
         headerTitle: null,
         profileButton: null,
+        adminIndicator: null, // [НОВОЕ]
         // (5.3) Поля
         dateInput: null,
         projectInput: null,
@@ -190,6 +191,7 @@ const App = {
             this.elements.reportForm = document.getElementById('report-form');
             this.elements.headerTitle = document.getElementById('header-title');
             this.elements.profileButton = document.getElementById('profile-button');
+            this.elements.adminIndicator = document.getElementById('admin-indicator'); // [НОВОЕ]
 
             // (5.3) Поля
             this.elements.dateInput = document.getElementById('date');
@@ -596,13 +598,16 @@ const App = {
             this.showAuthError("Ошибка сети. Попробуйте еще раз.");
         } finally {
             // @ts-ignore
-            this.elements.authSubmitButton.disabled = false; // Разблокируем кнопку в любом случае (кроме успешной перезагрузки)
+            // [ИЗМЕНЕНО] Кнопка разблокируется только если не было перезагрузки
+            if (!location.reload) {
+                this.elements.authSubmitButton.disabled = false;
+            }
             console.log('[LOG] Registration process finished.'); // [ЛОГ] Конец регистрации
         }
     },
 
     /**
-     * (5.1) Успешный вход (или регистрация)
+     * [ИЗМЕНЕНО] (5.1) Успешный вход (или регистрация)
      * @param {object} userData - Данные пользователя, полученные от API
      */
     onLoginSuccess(userData) {
@@ -619,6 +624,14 @@ const App = {
         this.elements.profileId.innerText = `Ваш ID: ${userData.tg_id}`;
 
         console.log('[LOG] State updated, user name set in profile:', this.state.user.driver_name); // [ЛОГ] Имя в профиле обновлено
+
+        // [НОВОЕ] Показываем индикатор админа, если роль = admin
+        if (userData.role === 'admin') {
+            console.log('[LOG] User is admin. Showing admin indicator.');
+            this.elements.adminIndicator.classList.remove('hidden');
+        } else {
+            this.elements.adminIndicator.classList.add('hidden');
+        }
 
         console.log('[LOG] Loading form data...'); // [ЛОГ] Загрузка данных формы
         this.loadFormData();
@@ -751,7 +764,7 @@ const App = {
         // @ts-ignore
         const { id, value, type, checked } = e.target;
 
-        if (id === 'overrun') return; // Игнорируем overrun здесь
+        if (id === 'overrun') return;
 
         if (id in this.state.currentReport) {
             // @ts-ignore
@@ -769,27 +782,23 @@ const App = {
         // @ts-ignore
         let value = e.target.value;
 
-        // Удаляем все не-цифры
         if (value !== '') {
             value = value.replace(/[^0-9]/g, '');
         }
 
         const numValue = parseInt(value, 10);
 
-        // Ограничиваем значение 9999
         if (!isNaN(numValue) && numValue > 9999) {
             value = '9999';
         } else if (isNaN(numValue) && value !== '') {
-             // Если после очистки осталось что-то нечисловое (маловероятно), сбрасываем
              value = '';
-        } else if (value.length > 4) { // Дополнительно ограничиваем длину строки 4 символами
+        } else if (value.length > 4) {
             value = value.slice(0, 4);
         }
 
         // @ts-ignore
-        e.target.value = value; // Обновляем поле ввода
+        e.target.value = value;
 
-        // Обновляем состояние и localStorage
         this.state.currentReport.overrun = value;
         localStorage.setItem('driver_report_draft', JSON.stringify(this.state.currentReport));
     },
@@ -885,7 +894,7 @@ const App = {
         this.state.editingReportId = null;
         this.fillForm(this.state.currentReport);
         localStorage.removeItem('driver_report_draft');
-        this.showScreen('main'); // Возвращаемся на главный экран
+        this.showScreen('main');
     },
 
     /**
@@ -1158,10 +1167,10 @@ const App = {
             } else {
                 console.log('[LOG] Report submitted successfully.'); // [ЛОГ] Отчет отправлен
                 this.showToast('Отчет успешно отправлен!');
-                this.resetForm(); // Сбрасываем форму *перед* закрытием
+                this.resetForm();
                 setTimeout(() => {
                     this.tg.close();
-                }, 1500); // Закрываем через 1.5 сек
+                }, 1500);
             }
         } catch (e) {
             console.error('[ERROR] Network or API client error during report submission:', e); // [ЛОГ] Ошибка отправки
@@ -1309,7 +1318,7 @@ const App = {
             } else {
                  console.log('[LOG] Report edited successfully.'); // [ЛОГ] Отчет изменен успешно
                 this.showToast('Отчет успешно отредактирован!');
-                this.resetForm(); // Сбрасываем форму
+                this.resetForm();
             }
         } catch (e) {
             console.error('[ERROR] Network or API client error during report edit submission:', e); // [ЛОГ] Ошибка отправки изменений
@@ -1352,7 +1361,7 @@ class ApiClient {
                           errorPayload = { message: `HTTP error ${response.status}: ${textError.substring(0, 100)}` };
                      } catch (textE) { console.error('[API Error] Failed to read error body:', textE); } // [ЛОГ] Не удалось прочитать тело ошибки
                 }
-                // [ИЗМЕНЕНО] Возвращаем details для D1_ERROR
+                // Возвращаем details для D1_ERROR
                 return { error: errorPayload.message, details: errorPayload.details };
             }
 
@@ -1360,18 +1369,18 @@ class ApiClient {
                  console.log(`[API Response] 204 No Content for ${endpoint}`); // [ЛОГ] 204
                  return { data: null };
             }
-            
+
             const responseClone = response.clone();
              try {
                  const jsonData = await response.json();
                  console.log(`[API Response Body] JSON for ${endpoint}:`, jsonData); // [ЛОГ] Тело ответа JSON
-                 return jsonData; 
+                 return jsonData;
              } catch (jsonError) {
                   console.error(`[API Error] Failed to parse JSON response for ${endpoint}:`, jsonError); // [ЛОГ] Ошибка парсинга JSON
                   try {
                        const textData = await responseClone.text();
                        console.warn(`[API Response Body] Non-JSON text for ${endpoint}:`, textData.substring(0, 200)); // [ЛОГ] Тело ответа (текст)
-                       return { error: `Invalid JSON response: ${textData.substring(0,100)}`}; 
+                       return { error: `Invalid JSON response: ${textData.substring(0,100)}`};
                   } catch (textError) {
                        console.error(`[API Error] Failed to read response body as text for ${endpoint}:`, textError); // [ЛОГ] Ошибка чтения текста
                        return { error: 'Failed to read response body'};
@@ -1380,7 +1389,7 @@ class ApiClient {
 
         } catch (e) {
             console.error('[API Request] Network Error:', e.message); // [ЛОГ] Ошибка сети fetch
-            return { error: 'Failed to fetch' }; 
+            return { error: 'Failed to fetch' };
         } finally {
             // @ts-ignore
              if (App && App.elements && App.elements.loader) App.elements.loader.classList.add('hidden');
