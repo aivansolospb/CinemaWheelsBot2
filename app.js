@@ -218,7 +218,7 @@ const App = {
             // (5.4) Редактирование
             this.elements.editListContainer = document.getElementById('edit-list-container');
             this.elements.editListCloseButton = document.getElementById('edit-list-close-button');
-            
+
             // Модальное окно предпросмотра
             this.elements.modalOverlay = document.getElementById('modal-overlay');
             this.elements.modal = document.getElementById('modal');
@@ -227,7 +227,7 @@ const App = {
             this.elements.modalCancelButton = document.getElementById('modal-cancel-btn');
             this.elements.modalConfirmButton = document.getElementById('modal-confirm-btn');
             this.elements.toast = document.getElementById('toast');
-            
+
             // Модальное окно смены имени
             this.elements.changeNameModalOverlay = document.getElementById('change-name-modal-overlay');
             this.elements.changeNameModal = document.getElementById('change-name-modal');
@@ -235,7 +235,7 @@ const App = {
             this.elements.changeNameError = document.getElementById('change-name-error');
             this.elements.changeNameCancelButton = document.getElementById('change-name-cancel-btn');
             this.elements.changeNameConfirmButton = document.getElementById('change-name-confirm-btn');
-            
+
             console.log('[LOG] DOM elements bound successfully.'); // [ЛОГ] Элементы привязаны
 
             // (2.0) Инициализация API
@@ -347,7 +347,7 @@ const App = {
         this.elements.editListScreen.classList.add('hidden');
         this.elements.authScreen.classList.add('hidden');
         this.elements.modalOverlay.classList.add('hidden');
-        this.elements.changeNameModalOverlay.classList.add('hidden'); 
+        this.elements.changeNameModalOverlay.classList.add('hidden');
 
         this.tg.BackButton.hide();
         this.tg.MainButton.hide();
@@ -425,7 +425,7 @@ const App = {
         this.elements.toast.className = ''; // Очищаем старые классы
         this.elements.toast.classList.add(type === 'success' ? 'toast-success' : 'toast-error');
         this.elements.toast.classList.add('show');
-        
+
         // Скрываем через 3 секунды
         setTimeout(() => {
             this.elements.toast.classList.remove('show');
@@ -444,39 +444,41 @@ const App = {
             this.elements.trailerStartInput,
             this.elements.trailerEndInput,
             this.elements.overrunInput,
-            this.elements.changeNameInput 
+            this.elements.changeNameInput
         ];
         fields.forEach(el => {
-            if (el) { 
+            if (el) {
                 el.classList.remove('input-error');
                 el.classList.remove('shake-animation');
             }
         });
-        this.elements.changeNameError.classList.add('hidden');
+        if(this.elements.changeNameError) { // Добавлена проверка
+             this.elements.changeNameError.classList.add('hidden');
+        }
     },
 
     // Показ модального окна предпросмотра
     showPreviewModal(title, message, confirmText, onConfirm) {
         console.log('[LOG] showPreviewModal called.');
         this.elements.modalTitle.innerText = title;
-        this.elements.modalBody.innerText = message; 
-        
+        this.elements.modalBody.innerText = message;
+
         const newConfirmBtn = this.elements.modalConfirmButton.cloneNode(true);
         // @ts-ignore
         newConfirmBtn.innerText = confirmText;
-        
+
         newConfirmBtn.addEventListener('click', () => {
             console.log('[LOG] Modal confirm clicked.');
             this.tg.HapticFeedback.impactOccurred('medium');
-            onConfirm(); 
-            this.hidePreviewModal(); 
+            onConfirm();
+            this.hidePreviewModal();
         });
 
         this.elements.modalConfirmButton.parentNode.replaceChild(newConfirmBtn, this.elements.modalConfirmButton);
         this.elements.modalConfirmButton = newConfirmBtn;
 
         this.elements.modalOverlay.classList.remove('hidden');
-        this.tg.MainButton.hide(); 
+        this.tg.MainButton.hide();
     },
 
     // Скрытие модального окна предпросмотра
@@ -493,10 +495,10 @@ const App = {
         console.log('[LOG] showChangeNameModal called.');
         this.tg.HapticFeedback.impactOccurred('light');
         // @ts-ignore
-        this.elements.changeNameInput.value = this.state.user.driver_name; 
-        this.clearValidationErrors(); 
+        this.elements.changeNameInput.value = this.state.user.driver_name;
+        this.clearValidationErrors();
         this.elements.changeNameModalOverlay.classList.remove('hidden');
-        this.tg.BackButton.hide(); 
+        this.tg.BackButton.hide();
     },
 
     // Скрытие модального окна смены имени
@@ -533,8 +535,8 @@ const App = {
                 }
             } else {
                 console.log('[LOG] Authentication successful, user data:', response.data); // [ЛОГ] Успешная аутентификация
-                this.state.user = response.data;
-                this.onLoginSuccess();
+                // [ИЗМЕНЕНО] Используем onLoginSuccess с передачей данных
+                this.onLoginSuccess(response.data);
             }
         } catch (e) {
             console.error('[ERROR] Network or API client error during authentication:', e); // [ЛОГ] Ошибка сети
@@ -543,7 +545,7 @@ const App = {
     },
 
     /**
-     * (5.1) POST /api/register - Регистрация
+     * [ИЗМЕНЕНО] (5.1) POST /api/register - Регистрация
      */
     async handleRegistration(e) {
         e.preventDefault();
@@ -555,19 +557,11 @@ const App = {
         const tgUser = this.tg.initDataUnsafe.user;
 
         console.log('[LOG] Validating driver name:', driverName); // [ЛОГ] Валидация имени
-        if (driverName.length < 5) {
-            this.showAuthError("ФИО должно быть длиннее 5 символов.");
-            return;
-        }
-        if (['=', '+', '-', '@'].includes(driverName[0])) {
-            this.showAuthError("ФИО не должно начинаться с =, +, - или @.");
-            return;
-        }
-        if (['техника', 'пользователи', 'admin'].includes(driverName.toLowerCase())) {
-            this.showAuthError("Это имя зарезервировано.");
-            return;
-        }
-        console.log('[LOG] Driver name validation passed.'); // [ЛОГ] Валидация пройдена
+        // ... (валидация имени осталась без изменений) ...
+        if (driverName.length < 5) { this.showAuthError("ФИО должно быть длиннее 5 символов."); return; }
+        if (['=', '+', '-', '@'].includes(driverName[0])) { this.showAuthError("ФИО не должно начинаться с =, +, - или @."); return; }
+        if (['техника', 'пользователи', 'admin'].includes(driverName.toLowerCase())) { this.showAuthError("Это имя зарезервировано."); return; }
+        console.log('[LOG] Driver name validation passed.');
 
         // @ts-ignore
         this.elements.authSubmitButton.disabled = true;
@@ -586,8 +580,8 @@ const App = {
                 this.showAuthError(response.error);
             } else {
                 console.log('[LOG] Registration successful.'); // [ЛОГ] Успешная регистрация
-                this.state.user = response.data;
-                this.onLoginSuccess();
+                // [ИЗМЕНЕНО] Передаем данные пользователя напрямую в onLoginSuccess
+                this.onLoginSuccess(response.data);
             }
         } catch (e) {
             console.error('[ERROR] Network or API client error during registration:', e); // [ЛОГ] Ошибка регистрации
@@ -600,12 +594,24 @@ const App = {
     },
 
     /**
-     * (5.1) Успешный вход (или регистрация)
+     * [ИЗМЕНЕНО] (5.1) Успешный вход (или регистрация)
+     * @param {object} userData - Данные пользователя, полученные от API
      */
-    onLoginSuccess() {
-        console.log('[LOG] onLoginSuccess() called.'); // [ЛОГ] Успешный вход
-        this.elements.profileName.innerText = this.state.user.driver_name;
-        this.elements.profileId.innerText = `Ваш ID: ${this.state.user.tg_id}`;
+    onLoginSuccess(userData) {
+        console.log('[LOG] onLoginSuccess() called with user data:', userData); // [ЛОГ] Успешный вход с данными
+        if (!userData || !userData.driver_name) {
+             console.error('[CRITICAL ERROR] onLoginSuccess received invalid user data:', userData);
+             this.showAuthError('Ошибка: получены некорректные данные пользователя.');
+             return;
+        }
+
+        // [ИЗМЕНЕНО] Устанавливаем состояние И используем переданные данные для UI
+        this.state.user = userData;
+        this.elements.profileName.innerText = userData.driver_name;
+        this.elements.profileId.innerText = `Ваш ID: ${userData.tg_id}`;
+
+        console.log('[LOG] State updated, user name set in profile:', this.state.user.driver_name); // [ЛОГ] Имя в профиле обновлено
+
         console.log('[LOG] Loading form data...'); // [ЛОГ] Загрузка данных формы
         this.loadFormData();
         console.log('[LOG] Loading draft...'); // [ЛОГ] Загрузка черновика
@@ -629,24 +635,24 @@ const App = {
         const newName = this.elements.changeNameInput.value.trim();
         console.log('[LOG] New name entered:', newName);
 
-        this.clearValidationErrors(); 
+        this.clearValidationErrors();
 
         if (!newName || newName === this.state.user.driver_name) {
             console.log('[LOG] Name change cancelled or name not changed.');
-            this.hideChangeNameModal(); 
+            this.hideChangeNameModal();
             return;
         }
 
-        const sanitizedName = newName; 
-        console.log('[LOG] Validating new name:', sanitizedName); 
-        
+        const sanitizedName = newName;
+        console.log('[LOG] Validating new name:', sanitizedName);
+
         let validationError = null;
         if (sanitizedName.length < 5) {
              validationError = "Некорректное ФИО. (Мин. 5 симв.).";
         } else if (['=', '+', '-', '@'].includes(sanitizedName[0])) {
              validationError = "Некорректное ФИО. (Не начинается с =,+, -,@).";
         }
-        
+
         if (validationError) {
              console.warn('[VALIDATION] Name change failed:', validationError);
              this.tg.HapticFeedback.notificationOccurred('error');
@@ -654,14 +660,14 @@ const App = {
              this.elements.changeNameError.innerText = validationError;
              this.elements.changeNameError.classList.remove('hidden');
              this.elements.changeNameInput.classList.add('input-error');
-             return; 
+             return;
         }
-        
+
         console.log('[LOG] New name validation passed.');
 
         this.hideChangeNameModal();
         this.showScreen('loader');
-        
+
         try {
             console.log('[LOG] Sending POST /changeName request...');
             const response = await this.api.post('/changeName', {
@@ -680,16 +686,15 @@ const App = {
                 console.log('[LOG] Name change successful.');
                 this.state.user.driver_name = sanitizedName;
                 this.elements.profileName.innerText = sanitizedName;
-                this.showToast('ФИО изменено.'); 
+                this.showToast('ФИО изменено.');
             }
         } catch (e) {
             console.error('[ERROR] Network or API client error during name change:', e);
-            this.showErrorPopup("Ошибка сети при смене имени."); 
+            this.showErrorPopup("Ошибка сети при смене имени.");
         } finally {
             console.log('[LOG] Returning to profile screen after name change attempt.');
-            if (!this.elements.profileScreen.classList.contains('hidden')) { 
-                this.showScreen('profile');
-            }
+            // [ИЗМЕНЕНО] Убедимся, что возвращаемся именно в профиль
+            this.showScreen('profile');
         }
     },
 
@@ -738,7 +743,7 @@ const App = {
         // @ts-ignore
         const { id, value, type, checked } = e.target;
 
-        if (id === 'overrun') return; 
+        if (id === 'overrun') return; // Игнорируем overrun здесь
 
         if (id in this.state.currentReport) {
             // @ts-ignore
@@ -755,24 +760,28 @@ const App = {
     handleOverrunInput(e) {
         // @ts-ignore
         let value = e.target.value;
-        
+
+        // Удаляем все не-цифры
         if (value !== '') {
             value = value.replace(/[^0-9]/g, '');
         }
 
         const numValue = parseInt(value, 10);
 
+        // Ограничиваем значение 9999
         if (!isNaN(numValue) && numValue > 9999) {
-            value = '9999'; 
+            value = '9999';
         } else if (isNaN(numValue) && value !== '') {
-             value = ''; 
-        } else if (value.length > 4) { 
+             // Если после очистки осталось что-то нечисловое (маловероятно), сбрасываем
+             value = '';
+        } else if (value.length > 4) { // Дополнительно ограничиваем длину строки 4 символами
             value = value.slice(0, 4);
         }
 
         // @ts-ignore
-        e.target.value = value;
+        e.target.value = value; // Обновляем поле ввода
 
+        // Обновляем состояние и localStorage
         this.state.currentReport.overrun = value;
         localStorage.setItem('driver_report_draft', JSON.stringify(this.state.currentReport));
     },
@@ -868,7 +877,7 @@ const App = {
         this.state.editingReportId = null;
         this.fillForm(this.state.currentReport);
         localStorage.removeItem('driver_report_draft');
-        this.showScreen('main');
+        this.showScreen('main'); // Возвращаемся на главный экран
     },
 
     /**
@@ -919,23 +928,23 @@ const App = {
         if (!data.project) { console.warn('[VALIDATION] Project missing.'); errors.push(this.elements.projectInput); }
         if (!data.vehicle) { console.warn('[VALIDATION] Vehicle missing.'); errors.push(this.elements.vehicleSelect); }
         if (!data.address) { console.warn('[VALIDATION] Address missing.'); errors.push(this.elements.addressInput); }
-        
+
         if (!data.shift_start) { console.warn('[VALIDATION] Shift start missing.'); errors.push(this.elements.shiftStartInput); }
         if (!data.shift_end) { console.warn('[VALIDATION] Shift end missing.'); errors.push(this.elements.shiftEndInput); }
-        
+
         if (data.trailer_diff_time && !data.trailer_start) { console.warn('[VALIDATION] Trailer start missing.'); errors.push(this.elements.trailerStartInput); }
         if (data.trailer_diff_time && !data.trailer_end) { console.warn('[VALIDATION] Trailer end missing.'); errors.push(this.elements.trailerEndInput); }
-        
+
         if (data.overrun) {
             const overrunValue = parseInt(data.overrun, 10);
-            if (isNaN(overrunValue) || overrunValue < 0) { 
-                 console.warn('[VALIDATION] Overrun invalid.'); 
-                 errors.push(this.elements.overrunInput); 
+            if (isNaN(overrunValue) || overrunValue < 0) {
+                 console.warn('[VALIDATION] Overrun invalid.');
+                 errors.push(this.elements.overrunInput);
             }
         }
 
         if (errors.length > 0) {
-            return errors; 
+            return errors;
         }
 
         console.log('[LOG] Form validation passed.');
@@ -989,38 +998,40 @@ const App = {
     handleMainButtonClick() {
         console.log('[LOG] handleMainButtonClick() called.'); // [ЛОГ] Нажатие главной кнопки
         this.tg.HapticFeedback.impactOccurred('medium');
-        
-        this.clearValidationErrors(); 
-        
+
+        this.clearValidationErrors();
+
         const validationErrors = this.validateForm();
-        
+
         if (validationErrors) {
             console.warn('[VALIDATION] Failed:', validationErrors);
-            this.tg.HapticFeedback.notificationOccurred('error'); 
-            
+            this.tg.HapticFeedback.notificationOccurred('error');
+
             validationErrors.forEach((el, index) => {
                 if (el) {
                     el.classList.add('input-error');
                     el.classList.add('shake-animation');
+                    // Удаляем класс анимации, чтобы она могла сработать снова
                     setTimeout(() => {
                         el.classList.remove('shake-animation');
-                    }, 500); 
+                    }, 500); // Длительность анимации
                 }
+                // Фокусируемся на первом поле с ошибкой
                 if (index === 0 && typeof el.focus === 'function') {
                     el.focus();
                 }
             });
-            
-            return; 
+
+            return; // Прерываем выполнение
         }
 
-        console.log('[LOG] Form validated, calculating preview data...'); 
-        
+        console.log('[LOG] Form validated, calculating preview data...');
+
         const data = this.state.currentReport;
-        
+
         // Используем обновленную calculateOvertime
         const shiftOvertime = this.calculateOvertime(data.shift_start, data.shift_end);
-        
+
         let trailerStart = data.trailer_start;
         let trailerEnd = data.trailer_end;
         let trailerOvertime = 0;
@@ -1032,11 +1043,11 @@ const App = {
         } else if (data.trailer && data.trailer_diff_time) {
              trailerOvertime = this.calculateOvertime(trailerStart, trailerEnd); // Считаем по времени прицепа
         }
-        
+
         // Новая функция форматирования часов и минут
         const fHours = (h) => {
-            if (h <= 0) return "0 ч."; 
-            const totalMinutes = Math.round(h * 60); 
+            if (h <= 0) return "0 ч.";
+            const totalMinutes = Math.round(h * 60);
             const hoursPart = Math.floor(totalMinutes / 60);
             const minutesPart = totalMinutes % 60;
             let result = "";
@@ -1044,60 +1055,67 @@ const App = {
                 result += `${hoursPart} ч.`;
             }
             if (minutesPart > 0) {
-                if (result.length > 0) result += " "; 
+                if (result.length > 0) result += " ";
                 result += `${minutesPart} мин.`;
             }
             return result;
         };
-        
+
         const user = this.state.user;
+        // [ИЗМЕНЕНО] Добавляем проверку на случай, если user еще не загружен
+        if (!user) {
+             console.error('[CRITICAL ERROR] User state is null in handleMainButtonClick!');
+             this.showErrorPopup('Ошибка: данные пользователя не загружены. Перезапустите приложение.');
+             return;
+        }
+
         const tgUser = this.tg.initDataUnsafe.user;
         const tgUserLink = tgUser.username ? `@${tgUser.username}` : `(ID: ${user.tg_id})`;
         const driverString = `${user.driver_name} ${tgUserLink}`;
 
         let previewMessage = [];
-        
+
         if (data.date) previewMessage.push(`🗓 ${data.date}`);
         if (driverString) previewMessage.push(`👤 Водитель: ${driverString}`);
         if (data.project) previewMessage.push(`🎬 Проект: ${data.project}`);
         if (data.vehicle) previewMessage.push(`🚚 Техника: ${data.vehicle}`);
         if (data.trailer) previewMessage.push(`➕ Прицеп: ${data.trailer}`);
         if (data.address) previewMessage.push(`📍 Адрес: ${data.address}`);
-        
+
         if (data.shift_start && data.shift_end) {
             // Используем новую fHours
             previewMessage.push(`🕔 Смена: ${data.shift_start} — ${data.shift_end} (Переработка: ${fHours(shiftOvertime)})`);
         }
-        
+
         if (data.trailer) {
             // Используем новую fHours
             previewMessage.push(`🕔 Смена прицепа: ${trailerStart || ''} — ${trailerEnd || ''} (Переработка: ${fHours(trailerOvertime)})`);
         }
-        
+
         if (data.overrun) {
             previewMessage.push(`🛣 Перепробег: ${data.overrun} км`);
         }
-        
+
         if (data.comment) {
             previewMessage.push(`💬 Комментарий: ${data.comment}`);
         }
-        
+
         const finalMessage = previewMessage.join('\n');
-        console.log('[LOG] Preview message generated. Length: ' + finalMessage.length);
+        console.log('[LOG] Preview message generated.');
 
         if (this.state.editingReportId) {
             this.showPreviewModal(
-                'Подтвердить изменения?', 
-                finalMessage, 
-                'Отредактировать', 
-                () => this.promptForEditReason() 
+                'Подтвердить изменения?',
+                finalMessage,
+                'Отредактировать',
+                () => this.promptForEditReason() // Передаем колбэк
             );
         } else {
             this.showPreviewModal(
                 'Отправить отчет?',
                 finalMessage,
                 'Отправить',
-                () => this.submitReport() 
+                () => this.submitReport() // Передаем колбэк
             );
         }
     },
@@ -1132,10 +1150,10 @@ const App = {
             } else {
                 console.log('[LOG] Report submitted successfully.'); // [ЛОГ] Отчет отправлен
                 this.showToast('Отчет успешно отправлен!');
-                this.resetForm();
+                this.resetForm(); // Сбрасываем форму *перед* закрытием
                 setTimeout(() => {
                     this.tg.close();
-                }, 1500); 
+                }, 1500); // Закрываем через 1.5 сек
             }
         } catch (e) {
             console.error('[ERROR] Network or API client error during report submission:', e); // [ЛОГ] Ошибка отправки
@@ -1283,7 +1301,7 @@ const App = {
             } else {
                  console.log('[LOG] Report edited successfully.'); // [ЛОГ] Отчет изменен успешно
                 this.showToast('Отчет успешно отредактирован!');
-                this.resetForm();
+                this.resetForm(); // Сбрасываем форму
             }
         } catch (e) {
             console.error('[ERROR] Network or API client error during report edit submission:', e); // [ЛОГ] Ошибка отправки изменений
@@ -1333,18 +1351,18 @@ class ApiClient {
                  console.log(`[API Response] 204 No Content for ${endpoint}`); // [ЛОГ] 204
                  return { data: null };
             }
-            
+
             const responseClone = response.clone();
              try {
                  const jsonData = await response.json();
                  console.log(`[API Response Body] JSON for ${endpoint}:`, jsonData); // [ЛОГ] Тело ответа JSON
-                 return jsonData; 
+                 return jsonData;
              } catch (jsonError) {
                   console.error(`[API Error] Failed to parse JSON response for ${endpoint}:`, jsonError); // [ЛОГ] Ошибка парсинга JSON
                   try {
                        const textData = await responseClone.text();
                        console.warn(`[API Response Body] Non-JSON text for ${endpoint}:`, textData.substring(0, 200)); // [ЛОГ] Тело ответа (текст)
-                       return { error: `Invalid JSON response: ${textData.substring(0,100)}`}; 
+                       return { error: `Invalid JSON response: ${textData.substring(0,100)}`};
                   } catch (textError) {
                        console.error(`[API Error] Failed to read response body as text for ${endpoint}:`, textError); // [ЛОГ] Ошибка чтения текста
                        return { error: 'Failed to read response body'};
@@ -1353,7 +1371,7 @@ class ApiClient {
 
         } catch (e) {
             console.error('[API Request] Network Error:', e.message); // [ЛОГ] Ошибка сети fetch
-            return { error: 'Failed to fetch' }; 
+            return { error: 'Failed to fetch' };
         } finally {
             // @ts-ignore
              if (App && App.elements && App.elements.loader) App.elements.loader.classList.add('hidden');
