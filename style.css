@@ -1,7 +1,21 @@
 /* (2.0) Общие стили */
 :root {
     --tg-theme-bg-color: #ffffff; /* Светлый фон по умолчанию */
-/* ... existing code ... -->
+    --tg-theme-text-color: #000000; /* Темный текст по умолчанию */
+    --tg-theme-hint-color: #999999;
+    --tg-theme-link-color: #007aff;
+    --tg-theme-button-color: #007aff;
+    --tg-theme-button-text-color: #ffffff;
+    --tg-theme-secondary-bg-color: #f2f2f7;
+    --tg-viewport-height: 100vh; /* Высота видимой области TWA */
+
+    /* Цвета для темной темы (могут быть переопределены Telegram) */
+    --tg-dark-theme-bg-color: #1c1c1e;
+    --tg-dark-theme-text-color: #ffffff;
+    --tg-dark-theme-hint-color: #8e8e93;
+    --tg-dark-theme-link-color: #0a84ff;
+    --tg-dark-theme-button-color: #0a84ff;
+    --tg-dark-theme-button-text-color: #ffffff;
     --tg-dark-theme-secondary-bg-color: #2c2c2e;
 
     /* (5.0) Дополнительные цвета */
@@ -13,107 +27,486 @@
 
 /* (2.0) Адаптация под цветовую схему Telegram */
 @media (prefers-color-scheme: light) {
-/* ... existing code ... -->
+    body {
+        background-color: var(--tg-theme-bg-color, #ffffff);
+        color: var(--tg-theme-text-color, #000000);
+    }
+    input, select, textarea {
+        background-color: var(--tg-theme-secondary-bg-color, #f2f2f7);
+        color: var(--tg-theme-text-color, #000000);
+        border: 1px solid var(--border-color, #c6c6c8);
+    }
+    button, .auth-button, .menu-item, .report-item-btn, .modal-btn-primary {
+        background-color: var(--tg-theme-button-color, #007aff);
+        color: var(--tg-theme-button-text-color, #ffffff);
+    }
+    .modal-btn-secondary {
+        background-color: var(--tg-theme-secondary-bg-color, #f2f2f7);
+        color: var(--tg-theme-text-color, #000000);
+    }
+    .modal-content {
+         background-color: var(--tg-theme-bg-color, #ffffff);
+    }
+     #modal-body {
+        color: var(--tg-theme-text-color, #000000);
+        border-top: 1px solid var(--border-color, #c6c6c8);
+        border-bottom: 1px solid var(--border-color, #c6c6c8);
+    }
+    .report-item, .profile-menu {
+        border-top: 1px solid var(--border-color, #c6c6c8);
+    }
+    .auth-error {
+        color: var(--error-color, #ff3b30);
+    }
     .auth-subtitle, .auth-icon, .profile-id, .report-item-date, .report-item-project {
         color: var(--tg-theme-hint-color, #999999);
     }
     .screen-header {
          border-bottom: 1px solid var(--border-color, #c6c6c8);
     }
-    /* [НОВОЕ] Стиль ошибки для светлой темы */
-    .input-error {
-        border-color: var(--error-color, #ff3b30) !important;
-        box-shadow: 0 0 0 1px var(--error-color, #ff3b30);
-    }
-    .toast-success {
-        background-color: var(--success-color, #34c759);
-        color: white;
-    }
-    .toast-error {
-        background-color: var(--error-color, #ff3b30);
-        color: white;
-    }
 }
 
 @media (prefers-color-scheme: dark) {
-/* ... existing code ... -->
+    body {
+        background-color: var(--tg-theme-bg-color, var(--tg-dark-theme-bg-color));
+        color: var(--tg-theme-text-color, var(--tg-dark-theme-text-color));
+    }
+    input, select, textarea {
+        background-color: var(--tg-theme-secondary-bg-color, var(--tg-dark-theme-secondary-bg-color));
+        color: var(--tg-theme-text-color, var(--tg-dark-theme-text-color));
+        border: 1px solid var(--dark-border-color, #38383a);
+    }
+     button, .auth-button, .menu-item, .report-item-btn, .modal-btn-primary {
+        background-color: var(--tg-theme-button-color, var(--tg-dark-theme-button-color));
+        color: var(--tg-theme-button-text-color, var(--tg-dark-theme-button-text-color));
+    }
+    .modal-btn-secondary {
+        background-color: var(--tg-theme-secondary-bg-color, var(--tg-dark-theme-secondary-bg-color));
+        color: var(--tg-theme-text-color, var(--tg-dark-theme-text-color));
+    }
+    .modal-content {
+         background-color: var(--tg-theme-bg-color, var(--tg-dark-theme-bg-color));
+    }
+    #modal-body {
+        color: var(--tg-theme-text-color, var(--tg-dark-theme-text-color));
+        border-top: 1px solid var(--dark-border-color, #38383a);
+        border-bottom: 1px solid var(--dark-border-color, #38383a);
+    }
+     .report-item, .profile-menu {
+        border-top: 1px solid var(--dark-border-color, #38383a);
+    }
+     .auth-error {
+        color: var(--error-color, #ff3b30); /* Оставляем ярким */
+    }
     .auth-subtitle, .auth-icon, .profile-id, .report-item-date, .report-item-project {
         color: var(--tg-theme-hint-color, var(--tg-dark-theme-hint-color));
     }
     .screen-header {
          border-bottom: 1px solid var(--dark-border-color, #38383a);
     }
-    /* [НОВОЕ] Стиль ошибки для темной темы */
-    .input-error {
-        border-color: var(--error-color, #ff3b30) !important;
-        box-shadow: 0 0 0 1px var(--error-color, #ff3b30);
-    }
-    .toast-success {
-        background-color: var(--success-color, #34c759);
-        color: #000;
-    }
-    .toast-error {
-        background-color: var(--error-color, #ff3b30);
-        color: #fff;
-    }
 }
 
 
 body {
-/* ... existing code ... -->
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 15px;
+    box-sizing: border-box;
+    /* (2.0) Используем переменную высоты TWA */
     min-height: var(--tg-viewport-height, 100vh); 
     overflow-x: hidden;
 }
 
 .hidden {
-/* ... existing code ... -->
-    100% { transform: rotate(360deg); }
+    display: none !important;
 }
 
-
-/* [НОВОЕ] Анимация вибрации */
-@keyframes shake {
-    0% { transform: translateX(0); }
-    15% { transform: translateX(-5px); }
-    30% { transform: translateX(5px); }
-    45% { transform: translateX(-5px); }
-    60% { transform: translateX(5px); }
-    75% { transform: translateX(-5px); }
-    100% { transform: translateX(0); }
-}
-
-.shake-animation {
-    animation: shake 0.3s ease-in-out;
-}
-
-/* [НОВОЕ] Стили для тост-уведомления */
-#toast {
+/* (5.0) Стили загрузчика */
+#loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: var(--tg-viewport-height, 100vh);
     position: fixed;
-    top: -100px; /* Изначально скрыт вверху */
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-size: 0.9em;
-    font-weight: 500;
-    z-index: 10001; /* Выше чем модальное окно */
-    transition: top 0.4s ease-in-out;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 9999;
+    background-color: rgba(var(--tg-theme-bg-color-rgb, 255, 255, 255), 0.8); /* Полупрозрачный фон */
 }
 
-#toast.show {
-    top: 20px; /* Появление */
+@media (prefers-color-scheme: dark) {
+    #loader {
+        background-color: rgba(var(--tg-dark-theme-bg-color-rgb, 28, 28, 30), 0.8);
+    }
+}
+
+.spinner {
+    border: 4px solid var(--tg-theme-hint-color, #999999);
+    border-top: 4px solid var(--tg-theme-button-color, #007aff);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 
 /* (5.1) Экран аутентификации */
 .auth-container {
-/* ... existing code ... -->
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    max-width: 400px;
+    margin: 40px auto;
+}
+.auth-icon {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 20px;
+}
+.auth-title {
+    font-size: 1.8em;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+.auth-subtitle {
+    font-size: 0.95em;
+    margin-bottom: 30px;
+}
+#auth-form {
+    width: 100%;
+}
+.auth-error {
+    margin-top: 15px;
+    font-size: 0.9em;
+}
+.auth-button {
+    width: 100%;
+    padding: 12px;
+    font-size: 1em;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 20px;
+    font-weight: 500;
+}
+.auth-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* (5.0) Общие стили для экранов */
+.screen {
+    padding-bottom: 70px; /* Место для MainButton */
+}
+
+.screen-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+.screen-title {
+    font-size: 1.5em;
+    font-weight: 600;
+    margin: 0;
+}
+.profile-button, .close-button {
+    background: none;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+    color: var(--tg-theme-button-color, #007aff);
+}
+.profile-button svg {
+    width: 28px;
+    height: 28px;
+    fill: currentColor;
+}
+.close-button {
+    font-size: 2em;
+    line-height: 1;
+    font-weight: 300;
+    padding: 0 10px;
+}
+
+/* (5.3) Стили формы */
+.form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.input-group label {
+    font-size: 0.9em;
+    font-weight: 500;
+}
+input[type="text"],
+input[type="date"],
+input[type="time"],
+input[type="number"],
+select,
+textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 1em;
+    box-sizing: border-box; /* Учитываем padding и border в ширине */
+}
+input::placeholder, textarea::placeholder {
+    color: var(--tg-theme-hint-color, #999999);
+}
+textarea {
+    resize: vertical; /* Разрешаем менять высоту */
+}
+
+/* (5.3) Стили для времени */
+.time-group {
+    display: flex;
+    flex-direction: row; /* [ИСПРАВЛЕНО] */
+    gap: 15px;
+}
+.time-input-container { /* [ИСПРАВЛЕНО] */
+    flex: 1; /* Растягиваем поля времени */
+}
+
+/* (5.3) Стили для "Время прицепа отличается" */
+.toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 0.95em;
+    margin-top: -10px; /* Ближе к селекту прицепа */
+}
+.toggle-checkbox {
+    appearance: none;
+    width: 40px;
+    height: 22px;
+    background-color: var(--tg-theme-secondary-bg-color, #f2f2f7);
+    border: 1px solid var(--border-color, #c6c6c8);
+    border-radius: 11px;
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+.toggle-checkbox::before {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    background-color: white;
+    border-radius: 50%;
+    top: 1px;
+    left: 1px;
+    transition: transform 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.toggle-checkbox:checked {
+    background-color: var(--tg-theme-button-color, #007aff);
+    border-color: var(--tg-theme-button-color, #007aff);
+}
+.toggle-checkbox:checked::before {
+    transform: translateX(18px);
+}
+@media (prefers-color-scheme: dark) {
+    .toggle-checkbox {
+         background-color: var(--tg-dark-theme-secondary-bg-color, #2c2c2e);
+         border-color: var(--dark-border-color, #38383a);
+    }
+    .toggle-checkbox::before {
+        background-color: #555; /* Темный кружок для темной темы */
+    }
+     .toggle-checkbox:checked::before {
+        background-color: white; /* Белый кружок при включении */
+    }
+}
+
+
+/* (5.2) Экран профиля */
+.profile-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+    position: relative; /* Для позиционирования кнопки закрытия */
+    text-align: center;
+}
+.profile-header svg {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 15px;
+    fill: var(--tg-theme-hint-color, #999999);
+}
+.profile-header h2 {
+    margin: 0 0 5px 0;
+    font-size: 1.6em;
+    font-weight: 600;
+}
+.profile-header p {
+    margin: 0;
+    font-size: 0.9em;
+}
+#profile-close-button {
+    position: absolute;
+    top: -10px;
+    right: -5px;
+}
+.profile-menu {
+    display: flex;
+    flex-direction: column;
+}
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    border: none;
+    background: none;
+    text-align: left;
+    font-size: 1em;
+    cursor: pointer;
+    border-top: 1px solid; /* Граница будет установлена через CSS переменные */
+    width: 100%;
+}
+.menu-item svg {
+    width: 24px;
+    height: 24px;
+    stroke: var(--tg-theme-button-color, #007aff);
+}
+.menu-item span {
+    color: var(--tg-theme-text-color); /* Используем цвет текста основной темы */
+}
+@media (prefers-color-scheme: dark) {
+    .menu-item span {
+        color: var(--tg-theme-text-color, var(--tg-dark-theme-text-color));
+    }
+}
+
+
+/* (5.4) Экран списка отчетов */
+.report-list-container {
+    display: flex;
+    flex-direction: column;
+}
+.report-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    border-top: 1px solid; /* Цвет определится темой */
+}
+.report-item:first-child {
+    border-top: none;
+}
+.report-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.report-item-date {
+    font-size: 0.9em;
+    font-weight: 500;
+}
+.report-item-project {
+    font-size: 0.85em;
+}
+.report-item-vehicle {
+    font-size: 0.95em;
+    font-weight: 500;
+}
+.report-item-btn {
+    padding: 8px;
+    border: none;
+    border-radius: 50%; /* Круглая кнопка */
+    cursor: pointer;
+    display: flex; /* Для выравнивания иконки */
+    align-items: center;
+    justify-content: center;
+}
+.report-item-btn svg {
+    width: 18px;
+    height: 18px;
+    fill: var(--tg-theme-button-text-color, #ffffff);
+}
+
+/* [НОВОЕ] Стили модального окна */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+    box-sizing: border-box;
+}
+.modal-content {
+    padding: 20px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+#modal-title {
+    font-size: 1.25em;
+    font-weight: 600;
+    margin: 0;
+}
+#modal-body {
+    font-size: 0.9em;
+    white-space: pre-wrap; /* Сохраняем переносы строк \n */
+    max-height: 50vh; /* Ограничиваем высоту */
+    overflow-y: auto; /* Добавляем скролл, если тело слишком длинное */
+    padding: 10px 0;
+}
+.modal-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+.modal-btn-primary,
+.modal-btn-secondary {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9em;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+
+/* (5.0) Адаптивность (на всякий случай) */
 @media (max-width: 350px) {
     body {
         padding: 10px;
     }
-/* ... existing code ... -->
+    .time-group {
+        flex-direction: column;
+    }
+    .screen-title {
+        font-size: 1.3em;
+    }
+    .auth-title {
         font-size: 1.6em;
     }
 }
