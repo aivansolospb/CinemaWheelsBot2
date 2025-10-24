@@ -126,7 +126,7 @@ const App = {
         modalCancelButton: null,
         modalConfirmButton: null,
         toast: null,
-        // [НОВОЕ] Модальное окно смены имени
+        // Модальное окно смены имени
         changeNameModalOverlay: null,
         changeNameModal: null,
         changeNameInput: null,
@@ -228,7 +228,7 @@ const App = {
             this.elements.modalConfirmButton = document.getElementById('modal-confirm-btn');
             this.elements.toast = document.getElementById('toast');
             
-            // [НОВОЕ] Модальное окно смены имени
+            // Модальное окно смены имени
             this.elements.changeNameModalOverlay = document.getElementById('change-name-modal-overlay');
             this.elements.changeNameModal = document.getElementById('change-name-modal');
             this.elements.changeNameInput = document.getElementById('change-name-input');
@@ -277,7 +277,7 @@ const App = {
     },
 
     /**
-     * (5.0) [ИЗМЕНЕНО] Привязка обработчиков
+     * (5.0) Привязка обработчиков
      */
     bindEvents() {
         // (5.0) Главная кнопка TWA
@@ -292,7 +292,7 @@ const App = {
         // (5.1) Регистрация
         this.elements.authForm.addEventListener('submit', (e) => this.handleRegistration(e));
 
-        // (5.2) Смена имени - [ИЗМЕНЕНО] Открывает модалку
+        // (5.2) Смена имени - Открывает модалку
         this.elements.profileEditNameButton.addEventListener('click', () => this.showChangeNameModal());
 
         // (5.3) Черновик
@@ -317,7 +317,7 @@ const App = {
             }
         });
 
-        // [НОВОЕ] Обработчики модального окна смены имени
+        // Обработчики модального окна смены имени
         this.elements.changeNameCancelButton.addEventListener('click', () => this.hideChangeNameModal());
         this.elements.changeNameConfirmButton.addEventListener('click', () => this.handleChangeName()); // Теперь кнопка вызывает handleChangeName
         this.elements.changeNameModalOverlay.addEventListener('click', (e) => {
@@ -332,7 +332,7 @@ const App = {
     // =============================================
 
     /**
-     * (5.0) [ИЗМЕНЕНО] Показать экран
+     * (5.0) Показать экран
      * @param {'loader' | 'main' | 'profile' | 'editList' | 'auth'} screenName
      */
     showScreen(screenName) {
@@ -347,7 +347,7 @@ const App = {
         this.elements.editListScreen.classList.add('hidden');
         this.elements.authScreen.classList.add('hidden');
         this.elements.modalOverlay.classList.add('hidden');
-        this.elements.changeNameModalOverlay.classList.add('hidden'); // [НОВОЕ]
+        this.elements.changeNameModalOverlay.classList.add('hidden'); 
 
         this.tg.BackButton.hide();
         this.tg.MainButton.hide();
@@ -396,7 +396,7 @@ const App = {
 
     /**
      * (5.0) Показать ошибку (всплывающее окно)
-     * [ИЗМЕНЕНО] Оставляем tg.showPopup для *критических* ошибок (сеть, сервер)
+     * Оставляем tg.showPopup для *критических* ошибок (сеть, сервер)
      */
     showErrorPopup(message, title = "Ошибка") {
         console.warn(`[POPUP ERROR] ${title}: ${message}`); // [ЛОГ] Показ ошибки
@@ -444,15 +444,14 @@ const App = {
             this.elements.trailerStartInput,
             this.elements.trailerEndInput,
             this.elements.overrunInput,
-            this.elements.changeNameInput // [НОВОЕ] Добавлено поле смены имени
+            this.elements.changeNameInput 
         ];
         fields.forEach(el => {
-            if (el) { // Проверка, что элемент существует
+            if (el) { 
                 el.classList.remove('input-error');
                 el.classList.remove('shake-animation');
             }
         });
-        // [НОВОЕ] Скрываем ошибку в модалке смены имени
         this.elements.changeNameError.classList.add('hidden');
     },
 
@@ -462,7 +461,6 @@ const App = {
         this.elements.modalTitle.innerText = title;
         this.elements.modalBody.innerText = message; 
         
-        // Динамическое назначение обработчика
         const newConfirmBtn = this.elements.modalConfirmButton.cloneNode(true);
         // @ts-ignore
         newConfirmBtn.innerText = confirmText;
@@ -490,22 +488,21 @@ const App = {
         }
     },
 
-    // [НОВОЕ] Показ модального окна смены имени
+    // Показ модального окна смены имени
     showChangeNameModal() {
         console.log('[LOG] showChangeNameModal called.');
         this.tg.HapticFeedback.impactOccurred('light');
         // @ts-ignore
-        this.elements.changeNameInput.value = this.state.user.driver_name; // Предзаполняем
-        this.clearValidationErrors(); // Очищаем старые ошибки
+        this.elements.changeNameInput.value = this.state.user.driver_name; 
+        this.clearValidationErrors(); 
         this.elements.changeNameModalOverlay.classList.remove('hidden');
-        this.tg.BackButton.hide(); // Прячем кнопку TWA Назад
+        this.tg.BackButton.hide(); 
     },
 
-    // [НОВОЕ] Скрытие модального окна смены имени
+    // Скрытие модального окна смены имени
     hideChangeNameModal() {
         console.log('[LOG] hideChangeNameModal called.');
         this.elements.changeNameModalOverlay.classList.add('hidden');
-        // Показываем кнопку TWA Назад, если мы на экране профиля
         if (!this.elements.profileScreen.classList.contains('hidden')) {
              this.tg.BackButton.show();
         }
@@ -622,7 +619,7 @@ const App = {
     // =============================================
 
     /**
-     * (5.2) [ИЗМЕНЕНО] POST /api/changeName - Смена ФИО (вызывается из модалки)
+     * (5.2) POST /api/changeName - Смена ФИО (вызывается из модалки)
      */
     async handleChangeName() {
         this.tg.HapticFeedback.impactOccurred('light');
@@ -632,15 +629,15 @@ const App = {
         const newName = this.elements.changeNameInput.value.trim();
         console.log('[LOG] New name entered:', newName);
 
-        this.clearValidationErrors(); // Очищаем предыдущие ошибки
+        this.clearValidationErrors(); 
 
         if (!newName || newName === this.state.user.driver_name) {
             console.log('[LOG] Name change cancelled or name not changed.');
-            this.hideChangeNameModal(); // Просто закрываем окно
+            this.hideChangeNameModal(); 
             return;
         }
 
-        const sanitizedName = newName; // Уже trim()
+        const sanitizedName = newName; 
         console.log('[LOG] Validating new name:', sanitizedName); 
         
         let validationError = null;
@@ -653,17 +650,15 @@ const App = {
         if (validationError) {
              console.warn('[VALIDATION] Name change failed:', validationError);
              this.tg.HapticFeedback.notificationOccurred('error');
-             // [НОВОЕ] Показываем ошибку в модалке
              // @ts-ignore
              this.elements.changeNameError.innerText = validationError;
              this.elements.changeNameError.classList.remove('hidden');
              this.elements.changeNameInput.classList.add('input-error');
-             return; // НЕ закрываем модалку
+             return; 
         }
         
         console.log('[LOG] New name validation passed.');
 
-        // Валидация пройдена, закрываем модалку и показываем лоадер
         this.hideChangeNameModal();
         this.showScreen('loader');
         
@@ -676,26 +671,23 @@ const App = {
              console.log('[LOG] Change name API response:', response);
 
             if (response.error) {
-                // Если ошибка "Имя занято", показываем тост
                 if (response.error === 'Это ФИО уже занято') {
                     this.showToast(response.error, 'error');
                 } else {
-                    // Другие ошибки сервера показываем через showErrorPopup
                     this.showErrorPopup(response.error);
                 }
             } else {
                 console.log('[LOG] Name change successful.');
                 this.state.user.driver_name = sanitizedName;
                 this.elements.profileName.innerText = sanitizedName;
-                this.showToast('ФИО изменено.'); // Тост об успехе
+                this.showToast('ФИО изменено.'); 
             }
         } catch (e) {
             console.error('[ERROR] Network or API client error during name change:', e);
-            this.showErrorPopup("Ошибка сети при смене имени."); // Критическая ошибка
+            this.showErrorPopup("Ошибка сети при смене имени."); 
         } finally {
             console.log('[LOG] Returning to profile screen after name change attempt.');
-            // Показываем экран профиля в любом случае (кроме ошибки сети, где showErrorPopup сама это сделает)
-            if (!this.elements.profileScreen.classList.contains('hidden')) { // Доп. проверка, если мы уже там
+            if (!this.elements.profileScreen.classList.contains('hidden')) { 
                 this.showScreen('profile');
             }
         }
@@ -746,7 +738,6 @@ const App = {
         // @ts-ignore
         const { id, value, type, checked } = e.target;
 
-        // [ИЗМЕНЕНО] Исключаем overrun, он обрабатывается в handleOverrunInput
         if (id === 'overrun') return; 
 
         if (id in this.state.currentReport) {
@@ -765,28 +756,23 @@ const App = {
         // @ts-ignore
         let value = e.target.value;
         
-        // Удаляем нецифровые символы (кроме пустого значения)
         if (value !== '') {
             value = value.replace(/[^0-9]/g, '');
         }
 
-        // Преобразуем в число для проверки
         const numValue = parseInt(value, 10);
 
-        // Если значение не число или больше 9999, обрезаем
         if (!isNaN(numValue) && numValue > 9999) {
-            value = '9999'; // Устанавливаем максимальное значение
+            value = '9999'; 
         } else if (isNaN(numValue) && value !== '') {
-             value = ''; // Если ввели не число, сбрасываем
-        } else if (value.length > 4) { // Дополнительная проверка на длину строки
+             value = ''; 
+        } else if (value.length > 4) { 
             value = value.slice(0, 4);
         }
 
-        // Обновляем значение в поле ввода
         // @ts-ignore
         e.target.value = value;
 
-        // Обновляем состояние и localStorage
         this.state.currentReport.overrun = value;
         localStorage.setItem('driver_report_draft', JSON.stringify(this.state.currentReport));
     },
@@ -957,7 +943,8 @@ const App = {
     },
 
     /**
-     * (5.3) Расчет переработки (для предпросмотра)
+     * (5.3) Расчет переработки (с округлением до 15 мин)
+     * Возвращает переработку в ЧАСАХ (десятичное число)
      */
     calculateOvertime(start, end) {
         if (!start || !end) return 0;
@@ -968,10 +955,28 @@ const App = {
                  console.warn("[WARN] Invalid time format for overtime calculation:", start, end);
                  return 0;
             }
-            let diffMinutes = (eh * 60 + em) - (sh * 60 + sm);
-            if (diffMinutes < 0) diffMinutes += 24 * 60;
-            const hours = diffMinutes / 60;
-            return hours > 12 ? (hours - 12) : 0;
+            let totalMinutes = (eh * 60 + em) - (sh * 60 + sm);
+            if (totalMinutes < 0) totalMinutes += 24 * 60; // Добавляем день при переходе через полночь
+
+            const overtimeMinutes = totalMinutes - (12 * 60); // Вычисляем минуты СВЕРХ 12 часов
+            if (overtimeMinutes <= 0) return 0; // Нет переработки
+
+            // --- Новая логика округления ---
+            const remainder = overtimeMinutes % 15;
+            const baseIntervals = Math.floor(overtimeMinutes / 15);
+            let roundedMinutes;
+            if (remainder <= 7) {
+                // Округляем вниз до ближайшего :00, :15, :30, :45
+                roundedMinutes = baseIntervals * 15;
+            } else {
+                // Округляем вверх до ближайшего :15, :30, :45, :00 (след. часа)
+                roundedMinutes = (baseIntervals + 1) * 15;
+            }
+            // --- Конец новой логики ---
+
+            const roundedHours = roundedMinutes / 60; // Конвертируем округленные минуты обратно в часы
+            return roundedHours;
+
         } catch (error) {
              console.error("[ERROR] Error calculating overtime:", error, "Start:", start, "End:", end);
              return 0;
@@ -1013,6 +1018,7 @@ const App = {
         
         const data = this.state.currentReport;
         
+        // Используем обновленную calculateOvertime
         const shiftOvertime = this.calculateOvertime(data.shift_start, data.shift_end);
         
         let trailerStart = data.trailer_start;
@@ -1022,12 +1028,27 @@ const App = {
         if (data.trailer && !data.trailer_diff_time) {
             trailerStart = data.shift_start;
             trailerEnd = data.shift_end;
-            trailerOvertime = this.calculateOvertime(trailerStart, trailerEnd);
+            trailerOvertime = this.calculateOvertime(trailerStart, trailerEnd); // Считаем по времени смены
         } else if (data.trailer && data.trailer_diff_time) {
-             trailerOvertime = this.calculateOvertime(trailerStart, trailerEnd);
+             trailerOvertime = this.calculateOvertime(trailerStart, trailerEnd); // Считаем по времени прицепа
         }
         
-        const fHours = (h) => h > 0 ? `${h.toFixed(1)} ч.` : '0 ч.';
+        // Новая функция форматирования часов и минут
+        const fHours = (h) => {
+            if (h <= 0) return "0 ч."; 
+            const totalMinutes = Math.round(h * 60); 
+            const hoursPart = Math.floor(totalMinutes / 60);
+            const minutesPart = totalMinutes % 60;
+            let result = "";
+            if (hoursPart > 0) {
+                result += `${hoursPart} ч.`;
+            }
+            if (minutesPart > 0) {
+                if (result.length > 0) result += " "; 
+                result += `${minutesPart} мин.`;
+            }
+            return result;
+        };
         
         const user = this.state.user;
         const tgUser = this.tg.initDataUnsafe.user;
@@ -1044,10 +1065,12 @@ const App = {
         if (data.address) previewMessage.push(`📍 Адрес: ${data.address}`);
         
         if (data.shift_start && data.shift_end) {
+            // Используем новую fHours
             previewMessage.push(`🕔 Смена: ${data.shift_start} — ${data.shift_end} (Переработка: ${fHours(shiftOvertime)})`);
         }
         
         if (data.trailer) {
+            // Используем новую fHours
             previewMessage.push(`🕔 Смена прицепа: ${trailerStart || ''} — ${trailerEnd || ''} (Переработка: ${fHours(trailerOvertime)})`);
         }
         
@@ -1310,19 +1333,18 @@ class ApiClient {
                  console.log(`[API Response] 204 No Content for ${endpoint}`); // [ЛОГ] 204
                  return { data: null };
             }
-            // Клонируем ответ, чтобы прочитать его как JSON, но оставить возможность прочитать еще раз, если нужно
+            
             const responseClone = response.clone();
              try {
                  const jsonData = await response.json();
                  console.log(`[API Response Body] JSON for ${endpoint}:`, jsonData); // [ЛОГ] Тело ответа JSON
-                 return jsonData; // Возвращаем уже распарсенный JSON
+                 return jsonData; 
              } catch (jsonError) {
                   console.error(`[API Error] Failed to parse JSON response for ${endpoint}:`, jsonError); // [ЛОГ] Ошибка парсинга JSON
-                  // Пытаемся прочитать как текст на случай, если это не JSON
                   try {
                        const textData = await responseClone.text();
                        console.warn(`[API Response Body] Non-JSON text for ${endpoint}:`, textData.substring(0, 200)); // [ЛОГ] Тело ответа (текст)
-                       return { error: `Invalid JSON response: ${textData.substring(0,100)}`}; // Возвращаем ошибку
+                       return { error: `Invalid JSON response: ${textData.substring(0,100)}`}; 
                   } catch (textError) {
                        console.error(`[API Error] Failed to read response body as text for ${endpoint}:`, textError); // [ЛОГ] Ошибка чтения текста
                        return { error: 'Failed to read response body'};
@@ -1331,7 +1353,7 @@ class ApiClient {
 
         } catch (e) {
             console.error('[API Request] Network Error:', e.message); // [ЛОГ] Ошибка сети fetch
-            return { error: 'Failed to fetch' }; // 'Failed to fetch' - стандартная ошибка сети
+            return { error: 'Failed to fetch' }; 
         } finally {
             // @ts-ignore
              if (App && App.elements && App.elements.loader) App.elements.loader.classList.add('hidden');
@@ -1341,7 +1363,6 @@ class ApiClient {
 
     async get(endpoint) {
         const result = await this.request(endpoint, { method: 'GET' });
-        // Пробрасываем ошибку 'Failed to fetch' выше, чтобы ее ловили try/catch вокруг вызовов API
         if (result.error === 'Failed to fetch') throw new Error('Failed to fetch');
         return result;
     }
@@ -1369,4 +1390,3 @@ document.addEventListener('DOMContentLoaded', () => {
           document.body.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--error-color);">Критическая ошибка при запуске приложения. Свяжитесь с администратором.</div>';
      }
 });
-
