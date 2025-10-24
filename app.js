@@ -43,7 +43,8 @@ if (typeof Telegram === 'undefined' || !Telegram.WebApp.initDataUnsafe) {
                 }
             },
             HapticFeedback: {
-                impactOccurred: (style) => { console.log("Mock Haptic:", style); }
+                impactOccurred: (style) => { console.log("Mock Haptic:", style); },
+                notificationOccurred: (type) => { console.log("Mock Haptic Notify:", type); } // Добавлен мок
             },
             // [ИЗМЕНЕНО] Оставляем showErrorPopup для простых ошибок
             showPopup: (params, callback) => {
@@ -124,6 +125,7 @@ const App = {
         modalBody: null,
         modalCancelButton: null,
         modalConfirmButton: null,
+        toast: null, // [НОВОЕ]
     },
 
     // (2.0) Состояние
@@ -217,6 +219,7 @@ const App = {
             this.elements.modalBody = document.getElementById('modal-body');
             this.elements.modalCancelButton = document.getElementById('modal-cancel-btn');
             this.elements.modalConfirmButton = document.getElementById('modal-confirm-btn');
+            this.elements.toast = document.getElementById('toast'); // [НОВОЕ]
             
             console.log('[LOG] DOM elements bound successfully.'); // [ЛОГ] Элементы привязаны
 
@@ -369,7 +372,7 @@ const App = {
 
     /**
      * (5.0) Показать ошибку (всплывающее окно)
-     * [ИЗМЕНЕНО] Оставляем tg.showPopup для простых ошибок
+     * [ИЗМЕНЕНО] Оставляем tg.showPopup для *критических* ошибок (сеть, сервер)
      */
     showErrorPopup(message, title = "Ошибка") {
         console.warn(`[POPUP ERROR] ${title}: ${message}`); // [ЛОГ] Показ ошибки
@@ -389,6 +392,41 @@ const App = {
         // @ts-ignore
         this.elements.authError.innerText = message;
         this.elements.authError.classList.remove('hidden');
+    },
+
+    // [НОВОЕ] Показ тост-уведомления
+    showToast(message, type = 'success') {
+        console.log(`[TOAST] ${type}: ${message}`);
+        this.elements.toast.innerText = message;
+        this.elements.toast.className = ''; // Очищаем старые классы
+        this.elements.toast.classList.add(type === 'success' ? 'toast-success' : 'toast-error');
+        this.elements.toast.classList.add('show');
+        
+        // Скрываем через 3 секунды
+        setTimeout(() => {
+            this.elements.toast.classList.remove('show');
+        }, 3000);
+    },
+
+    // [НОВОЕ] Снятие выделения ошибок валидации
+    clearValidationErrors() {
+        const fields = [
+            this.elements.dateInput,
+            this.elements.projectInput,
+            this.elements.vehicleSelect,
+            this.elements.addressInput,
+            this.elements.shiftStartInput,
+            this.elements.shiftEndInput,
+            this.elements.trailerStartInput,
+            this.elements.trailerEndInput,
+            this.elements.overrunInput // Добавлено поле перепробега
+        ];
+        fields.forEach(el => {
+            if (el) { // Проверка, что элемент существует
+                el.classList.remove('input-error');
+                el.classList.remove('shake-animation');
+            }
+        });
     },
 
     // [НОВОЕ] Показ модального окна
@@ -574,7 +612,8 @@ const App = {
                 const sanitizedName = newName.trim();
                 console.log('[LOG] Validating new name:', sanitizedName); // [ЛОГ] Валидация нового имени
                 if (sanitizedName.length < 5 || ['=', '+', '-', '@'].includes(sanitizedName[0])) {
-                    this.showErrorPopup("Некорректное ФИО. (Мин. 5 симв., не начинается с =,+, -,@).");
+                    // [ИЗМЕНЕНО] Используем тост вместо алерта
+                    this.showToast("Некорректное ФИО. (Мин. 5 симв., не начинается с =,+, -,@).", 'error');
                     return;
                 }
                 console.log('[LOG] New name validation passed.'); // [ЛОГ] Валидация нового имени пройдена
@@ -594,7 +633,8 @@ const App = {
                         console.log('[LOG] Name change successful.'); // [ЛОГ] Имя сменено успешно
                         this.state.user.driver_name = sanitizedName;
                         this.elements.profileName.innerText = sanitizedName;
-                        this.tg.showPopup({ title: 'Успех', message: 'ФИО изменено.' });
+                        // [ИЗМЕНЕНО] Используем тост вместо алерта
+                        this.showToast('ФИО изменено.');
                     }
                 } catch (e) {
                     console.error('[ERROR] Network or API client error during name change:', e); // [ЛОГ] Ошибка смены имени
@@ -828,30 +868,40 @@ const App = {
     },
 
     /**
-     * (5.3) [ИЗМЕНЕНО] Валидация формы (убираем проверку overrun > 9999)
+     * (5.3) [ИЗМЕНЕНО] Валидация формы (возвращает массив элементов)
      */
     validateForm() {
         console.log('[LOG] validateForm() called.'); // [ЛОГ] Валидация формы
         const data = this.state.currentReport;
-        if (!data.date) { console.warn('[VALIDATION] Date missing.'); return "Укажите дату."; }
-        if (!data.project) { console.warn('[VALIDATION] Project missing.'); return "Укажите проект."; }
-        if (!data.vehicle) { console.warn('[VALIDATION] Vehicle missing.'); return "Выберите технику."; }
-        if (!data.address) { console.warn('[VALIDATION] Address missing.'); return "Укажите адрес."; }
-        if (!data.shift_start || !data.shift_end) { console.warn('[VALIDATION] Shift time missing.'); return "Укажите время начала и конца смены."; }
-        if (data.trailer_diff_time && (!data.trailer_start || !data.trailer_end)) { console.warn('[VALIDATION] Trailer time missing when diff enabled.'); return "Укажите время начала и конца прицепа."; }
+        const errors = []; // Массив элементов с ошибками
+
+        if (!data.date) { console.warn('[VALIDATION] Date missing.'); errors.push(this.elements.dateInput); }
+        if (!data.project) { console.warn('[VALIDATION] Project missing.'); errors.push(this.elements.projectInput); }
+        if (!data.vehicle) { console.warn('[VALIDATION] Vehicle missing.'); errors.push(this.elements.vehicleSelect); }
+        if (!data.address) { console.warn('[VALIDATION] Address missing.'); errors.push(this.elements.addressInput); }
         
-        // [ИЗМЕНЕНО] Проверка > 9999 больше не нужна, т.к. ввод ограничен
+        // [ИЗМЕНЕНО] Проверяем оба поля времени
+        if (!data.shift_start) { console.warn('[VALIDATION] Shift start missing.'); errors.push(this.elements.shiftStartInput); }
+        if (!data.shift_end) { console.warn('[VALIDATION] Shift end missing.'); errors.push(this.elements.shiftEndInput); }
+        
+        if (data.trailer_diff_time && !data.trailer_start) { console.warn('[VALIDATION] Trailer start missing.'); errors.push(this.elements.trailerStartInput); }
+        if (data.trailer_diff_time && !data.trailer_end) { console.warn('[VALIDATION] Trailer end missing.'); errors.push(this.elements.trailerEndInput); }
+        
         if (data.overrun) {
             const overrunValue = parseInt(data.overrun, 10);
             // Проверяем только на NaN и отрицательные (на всякий случай)
             if (isNaN(overrunValue) || overrunValue < 0) { 
                  console.warn('[VALIDATION] Overrun invalid.'); 
-                 return "Перепробег должен быть положительным числом.";
+                 errors.push(this.elements.overrunInput); // Добавляем в ошибки, если введено некорректное (непустое) значение
             }
         }
 
-        console.log('[LOG] Form validation passed.'); // [ЛОГ] Валидация пройдена
-        return null;
+        if (errors.length > 0) {
+            return errors; // Возвращаем массив элементов
+        }
+
+        console.log('[LOG] Form validation passed.');
+        return null; // Успех
     },
 
     /**
@@ -882,11 +932,33 @@ const App = {
     handleMainButtonClick() {
         console.log('[LOG] handleMainButtonClick() called.'); // [ЛОГ] Нажатие главной кнопки
         this.tg.HapticFeedback.impactOccurred('medium');
-        const validationError = this.validateForm();
-        if (validationError) {
-            // [ИЗМЕНЕНО] Используем tg.showPopup для простых ошибок
-            this.showErrorPopup(validationError);
-            return;
+        
+        this.clearValidationErrors(); // [НОВОЕ] Очищаем старые ошибки
+        
+        const validationErrors = this.validateForm();
+        
+        if (validationErrors) {
+            console.warn('[VALIDATION] Failed:', validationErrors);
+            this.tg.HapticFeedback.notificationOccurred('error'); // Вибрация
+            
+            // [НОВОЕ] Применяем стили ошибок
+            validationErrors.forEach((el, index) => {
+                if (el) {
+                    el.classList.add('input-error');
+                    el.classList.add('shake-animation');
+                    // Снимаем класс анимации, чтобы она могла повториться
+                    setTimeout(() => {
+                        el.classList.remove('shake-animation');
+                    }, 500); // Длительность анимации + запас
+                }
+                
+                // Фокус на первом ошибочном поле
+                if (index === 0 && typeof el.focus === 'function') {
+                    el.focus();
+                }
+            });
+            
+            return; // Прерываем выполнение
         }
 
         console.log('[LOG] Form validated, calculating preview data...'); // [ЛОГ] Расчет предпросмотра
@@ -995,8 +1067,12 @@ const App = {
                 this.showScreen('main');
             } else {
                 console.log('[LOG] Report submitted successfully.'); // [ЛОГ] Отчет отправлен
-                this.tg.showPopup({ title: 'Успех!', message: 'Отчет успешно отправлен.' });
+                // [ИЗМЕНЕНО] Показываем тост и закрываем приложение
+                this.showToast('Отчет успешно отправлен!');
                 this.resetForm();
+                setTimeout(() => {
+                    this.tg.close();
+                }, 1500); // Даем время тосту показаться
             }
         } catch (e) {
             console.error('[ERROR] Network or API client error during report submission:', e); // [ЛОГ] Ошибка отправки
@@ -1107,7 +1183,8 @@ const App = {
             this.submitEditReport(reason.trim());
         } else if (reason !== null) {
             console.warn('[WARN] Edit reason is too short or empty.'); // [ЛОГ] Причина короткая
-            this.showErrorPopup("Причина обязательна (мин. 4 символа).");
+            // [ИЗМЕНЕНО] Используем тост
+            this.showToast("Причина обязательна (мин. 4 символа).", 'error');
         } else {
              console.log('[LOG] Edit reason prompt cancelled.'); // [ЛОГ] Отмена ввода причины
         }
@@ -1143,7 +1220,8 @@ const App = {
                 this.showScreen('main');
             } else {
                  console.log('[LOG] Report edited successfully.'); // [ЛОГ] Отчет изменен успешно
-                this.tg.showPopup({ title: 'Успех!', message: 'Отчет успешно отредактирован.' });
+                 // [ИЗМЕНЕНО] Используем тост
+                this.showToast('Отчет успешно отредактирован!');
                 this.resetForm();
             }
         } catch (e) {
@@ -1199,7 +1277,7 @@ class ApiClient {
              try {
                  const jsonData = await response.json();
                  console.log(`[API Response Body] JSON for ${endpoint}:`, jsonData); // [ЛОГ] Тело ответа JSON
-                 return jsonData; // Возвращаем уже распарсенный JSO
+                 return jsonData; // Возвращаем уже распарсенный JSON
              } catch (jsonError) {
                   console.error(`[API Error] Failed to parse JSON response for ${endpoint}:`, jsonError); // [ЛОГ] Ошибка парсинга JSON
                   // Пытаемся прочитать как текст на случай, если это не JSON
@@ -1253,4 +1331,3 @@ document.addEventListener('DOMContentLoaded', () => {
           document.body.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--error-color);">Критическая ошибка при запуске приложения. Свяжитесь с администратором.</div>';
      }
 });
-

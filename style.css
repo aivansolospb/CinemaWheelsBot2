@@ -36,21 +36,9 @@
         color: var(--tg-theme-text-color, #000000);
         border: 1px solid var(--border-color, #c6c6c8);
     }
-    button, .auth-button, .menu-item, .report-item-btn, .modal-btn-primary {
+    button, .auth-button, .menu-item, .report-item-btn {
         background-color: var(--tg-theme-button-color, #007aff);
         color: var(--tg-theme-button-text-color, #ffffff);
-    }
-    .modal-btn-secondary {
-        background-color: var(--tg-theme-secondary-bg-color, #f2f2f7);
-        color: var(--tg-theme-text-color, #000000);
-    }
-    .modal-content {
-         background-color: var(--tg-theme-bg-color, #ffffff);
-    }
-     #modal-body {
-        color: var(--tg-theme-text-color, #000000);
-        border-top: 1px solid var(--border-color, #c6c6c8);
-        border-bottom: 1px solid var(--border-color, #c6c6c8);
     }
     .report-item, .profile-menu {
         border-top: 1px solid var(--border-color, #c6c6c8);
@@ -64,6 +52,20 @@
     .screen-header {
          border-bottom: 1px solid var(--border-color, #c6c6c8);
     }
+    /* [НОВОЕ] Стиль ошибки для светлой темы */
+    .input-error {
+        border-color: var(--error-color, #ff3b30) !important;
+        box-shadow: 0 0 0 1px var(--error-color, #ff3b30);
+    }
+    /* [НОВОЕ] Стили тоста */
+    .toast-success {
+        background-color: var(--success-color, #34c759);
+        color: white;
+    }
+    .toast-error {
+        background-color: var(--error-color, #ff3b30);
+        color: white;
+    }
 }
 
 @media (prefers-color-scheme: dark) {
@@ -76,21 +78,9 @@
         color: var(--tg-theme-text-color, var(--tg-dark-theme-text-color));
         border: 1px solid var(--dark-border-color, #38383a);
     }
-     button, .auth-button, .menu-item, .report-item-btn, .modal-btn-primary {
+     button, .auth-button, .menu-item, .report-item-btn {
         background-color: var(--tg-theme-button-color, var(--tg-dark-theme-button-color));
         color: var(--tg-theme-button-text-color, var(--tg-dark-theme-button-text-color));
-    }
-    .modal-btn-secondary {
-        background-color: var(--tg-theme-secondary-bg-color, var(--tg-dark-theme-secondary-bg-color));
-        color: var(--tg-theme-text-color, var(--tg-dark-theme-text-color));
-    }
-    .modal-content {
-         background-color: var(--tg-theme-bg-color, var(--tg-dark-theme-bg-color));
-    }
-    #modal-body {
-        color: var(--tg-theme-text-color, var(--tg-dark-theme-text-color));
-        border-top: 1px solid var(--dark-border-color, #38383a);
-        border-bottom: 1px solid var(--dark-border-color, #38383a);
     }
      .report-item, .profile-menu {
         border-top: 1px solid var(--dark-border-color, #38383a);
@@ -103,6 +93,20 @@
     }
     .screen-header {
          border-bottom: 1px solid var(--dark-border-color, #38383a);
+    }
+    /* [НОВОЕ] Стиль ошибки для темной темы */
+    .input-error {
+        border-color: var(--error-color, #ff3b30) !important;
+        box-shadow: 0 0 0 1px var(--error-color, #ff3b30);
+    }
+    /* [НОВОЕ] Стили тоста */
+    .toast-success {
+        background-color: var(--success-color, #34c759);
+        color: #000;
+    }
+    .toast-error {
+        background-color: var(--error-color, #ff3b30);
+        color: #fff;
     }
 }
 
@@ -153,6 +157,40 @@ body {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* [НОВОЕ] Анимация вибрации */
+@keyframes shake {
+    0% { transform: translateX(0); }
+    15% { transform: translateX(-5px); }
+    30% { transform: translateX(5px); }
+    45% { transform: translateX(-5px); }
+    60% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+    100% { transform: translateX(0); }
+}
+
+.shake-animation {
+    animation: shake 0.3s ease-in-out;
+}
+
+/* [НОВОЕ] Стили для тост-уведомления */
+#toast {
+    position: fixed;
+    top: -100px; /* Изначально скрыт вверху */
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 0.9em;
+    font-weight: 500;
+    z-index: 10001; /* Выше чем модальное окно */
+    transition: top 0.4s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+#toast.show {
+    top: 20px; /* Появление */
 }
 
 
@@ -263,6 +301,8 @@ textarea {
     border-radius: 8px;
     font-size: 1em;
     box-sizing: border-box; /* Учитываем padding и border в ширине */
+    /* [НОВОЕ] Плавный переход для рамки */
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 input::placeholder, textarea::placeholder {
     color: var(--tg-theme-hint-color, #999999);
@@ -271,7 +311,7 @@ textarea {
     resize: vertical; /* Разрешаем менять высоту */
 }
 
-/* (5.3) Стили для времени */
+/* (5.3) Стили для времени [ИСПРАВЛЕНО] */
 .time-group {
     display: flex;
     flex-direction: row; /* [ИСПРАВЛЕНО] */
@@ -442,56 +482,77 @@ textarea {
     fill: var(--tg-theme-button-text-color, #ffffff);
 }
 
+
 /* [НОВОЕ] Стили модального окна */
 .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    z-index: 1000;
+    height: var(--tg-viewport-height, 100vh);
+    background-color: rgba(0, 0, 0, 0.5);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 15px;
-    box-sizing: border-box;
+    z-index: 10000;
 }
-.modal-content {
+.modal {
+    background-color: var(--tg-theme-bg-color, #ffffff);
     padding: 20px;
     border-radius: 12px;
-    width: 100%;
+    width: 90%;
     max-width: 400px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
-#modal-title {
-    font-size: 1.25em;
+@media (prefers-color-scheme: dark) {
+     .modal {
+        background-color: var(--tg-dark-theme-secondary-bg-color, #2c2c2e);
+     }
+}
+.modal-title {
+    font-size: 1.2em;
     font-weight: 600;
-    margin: 0;
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: var(--tg-theme-text-color, #000000);
 }
-#modal-body {
+.modal-body {
     font-size: 0.9em;
-    white-space: pre-wrap; /* Сохраняем переносы строк \n */
-    max-height: 50vh; /* Ограничиваем высоту */
-    overflow-y: auto; /* Добавляем скролл, если тело слишком длинное */
-    padding: 10px 0;
+    white-space: pre-wrap; /* Сохраняет \n */
+    max-height: 40vh;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    color: var(--tg-theme-text-color, #000000);
+    /* Стилизация скроллбара (опционально, для красоты) */
+    scrollbar-width: thin;
+    scrollbar-color: var(--tg-theme-hint-color) var(--tg-theme-secondary-bg-color);
 }
-.modal-buttons {
+.modal-actions {
     display: flex;
     gap: 10px;
-    justify-content: flex-end;
 }
-.modal-btn-primary,
-.modal-btn-secondary {
-    padding: 10px 15px;
+.modal-button {
+    flex: 1;
+    padding: 10px;
     border: none;
     border-radius: 8px;
-    font-size: 0.9em;
+    font-size: 1em;
     font-weight: 500;
     cursor: pointer;
+}
+.modal-button-cancel {
+    background-color: var(--tg-theme-secondary-bg-color, #f2f2f7);
+    color: var(--tg-theme-text-color, #000000);
+}
+.modal-button-confirm {
+    background-color: var(--tg-theme-button-color, #007aff);
+    color: var(--tg-theme-button-text-color, #ffffff);
+}
+@media (prefers-color-scheme: dark) {
+    .modal-button-cancel {
+        background-color: var(--tg-dark-theme-hint-color, #8e8e93);
+        color: var(--tg-dark-theme-text-color, #ffffff);
+    }
 }
 
 
@@ -510,4 +571,3 @@ textarea {
         font-size: 1.6em;
     }
 }
-
