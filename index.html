@@ -12,6 +12,9 @@
 </head>
 <body>
 
+    <!-- [НОВОЕ] Всплывающее уведомление (тост) -->
+    <div id="toast"></div>
+
     <!-- (2.0) (5.0) Загрузчик -->
     <div id="loader" class="screen">
         <div class="spinner"></div>
@@ -177,14 +180,12 @@
 
     <!-- [НОВОЕ] Модальное окно предпросмотра -->
     <div id="modal-overlay" class="modal-overlay hidden">
-        <div id="modal" class="modal-content">
-            <h2 id="modal-title">Заголовок</h2>
-            <div id="modal-body">
-                Текст...
-            </div>
-            <div class="modal-buttons">
-                <button id="modal-cancel-btn" class="modal-btn-secondary">Отмена</button>
-                <button id="modal-confirm-btn" class="modal-btn-primary">OK</button>
+        <div id="modal" class="modal">
+            <h2 id="modal-title" class="modal-title">Заголовок</h2>
+            <pre id="modal-body" class="modal-body">Тело...</pre>
+            <div class="modal-actions">
+                <button id="modal-cancel-btn" class="modal-button modal-button-cancel">Отмена</button>
+                <button id="modal-confirm-btn" class="modal-button modal-button-confirm">Ок</button>
             </div>
         </div>
     </div>
